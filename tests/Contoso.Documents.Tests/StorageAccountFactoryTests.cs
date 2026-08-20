@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using Azure.Core;
 using Azure.Storage.Files.Shares;
 using Azure.Storage.Queues;
 using Contoso.Documents;
@@ -61,6 +62,18 @@ public class StorageAccountFactoryTests
     }
 
     [Fact]
+    public void TryCreate_WithCanonicalConnectionString_ReturnsFactoryAndExactEndpoint()
+    {
+        bool created = StorageAccountFactory.TryCreate(
+            CanonicalConnectionString,
+            out StorageAccountFactory factory);
+
+        Assert.True(created);
+        Assert.NotNull(factory);
+        Assert.Equal(new Uri("https://contosodocs.blob.core.windows.net/"), factory.BlobEndpoint);
+    }
+
+    [Fact]
     public void FromSharedKey_ProducesClientsThatCanGenerateSas()
     {
         StorageAccountFactory factory = StorageAccountFactory.FromSharedKey(AccountName, AccountKey);
@@ -90,5 +103,25 @@ public class StorageAccountFactoryTests
         Assert.IsType<BlobServiceClient>(factory.CreateBlobClient());
         Assert.IsType<QueueServiceClient>(factory.CreateQueueClient());
         Assert.IsType<ShareServiceClient>(factory.CreateFileClient());
+    }
+
+    [Fact]
+    public void CreateBlobOptions_PreserveExponentialRetrySettings()
+    {
+        BlobClientOptions options = StorageAccountFactory.CreateBlobOptions();
+
+        Assert.Equal(RetryMode.Exponential, options.Retry.Mode);
+        Assert.Equal(TimeSpan.FromSeconds(3), options.Retry.Delay);
+        Assert.Equal(4, options.Retry.MaxRetries);
+    }
+
+    [Fact]
+    public void CreateQueueOptions_PreserveFixedRetrySettings()
+    {
+        QueueClientOptions options = StorageAccountFactory.CreateQueueOptions();
+
+        Assert.Equal(RetryMode.Fixed, options.Retry.Mode);
+        Assert.Equal(TimeSpan.FromSeconds(2), options.Retry.Delay);
+        Assert.Equal(3, options.Retry.MaxRetries);
     }
 }
