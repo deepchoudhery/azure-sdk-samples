@@ -1,0 +1,469 @@
+{
+  "settings": {
+    "components": {
+      "code": true,
+      "binaries": false
+    },
+    "targetId": "net10.0",
+    "targetDisplayName": ".NETCoreApp,Version=v10.0"
+  },
+  "analysisStartTime": "2026-08-20T23:02:09.9393945Z",
+  "analysisEndTime": "2026-08-20T23:08:41.37093Z",
+  "privacyModeHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2270980",
+  "stats": {
+    "summary": {
+      "projects": 1,
+      "issues": 4,
+      "incidents": 12,
+      "effort": 12
+    },
+    "charts": {
+      "severity": {
+        "Mandatory": 2,
+        "Optional": 0,
+        "Potential": 10,
+        "Information": 0
+      },
+      "category": {
+        "NuGet": 1,
+        "Project": 1,
+        "Api": 10
+      }
+    }
+  },
+  "projects": [
+    {
+      "path": "Contoso.Ordering.csproj",
+      "startingProject": true,
+      "issues": 4,
+      "storyPoints": 12,
+      "properties": {
+        "appName": "Contoso.Ordering",
+        "projectKind": "DotNetCoreApp",
+        "frameworks": [
+          "net472"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "isTestProject": false,
+        "numberOfFiles": 7,
+        "numberOfCodeFiles": 7,
+        "linesTotal": 731,
+        "linesOfCode": 731,
+        "totalApiScanned": 777,
+        "minLinesOfCodeToChange": 10,
+        "maxLinesOfCodeToChange": 10
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "365575ae-eca4-4fea-b1b0-4e2f081246a8",
+          "ruleId": "NuGet.0001",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "WindowsAzure.ServiceBus, 6.2.1\n\nRecommendation:\n\nNo supported version found",
+              "protected": "WindowsAzure.ServiceBus, 6.2.1\n\nRecommendation:\n\nNo supported version found"
+            },
+            "kind": "File",
+            "path": "Contoso.Ordering.csproj",
+            "snippet": "WindowsAzure.ServiceBus, 6.2.1\n\nRecommendation:\n\nNo supported version found",
+            "protectedSnippet": "WindowsAzure.ServiceBus, 6.2.1\n\nRecommendation:\n\nNo supported version found",
+            "label": "WindowsAzure.ServiceBus 6.2.1",
+            "properties": {
+              "PackageId": "WindowsAzure.ServiceBus",
+              "PackageVersion": "6.2.1",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "e979f8a0-6522-4da3-924d-2599a7d38f91",
+          "ruleId": "Project.0002",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net472\nRecommended target framework: net10.0",
+              "protected": "Current target framework: net472\nRecommended target framework: net10.0"
+            },
+            "kind": "File",
+            "path": "Contoso.Ordering.csproj",
+            "snippet": "Current target framework: net472\nRecommended target framework: net10.0",
+            "protectedSnippet": "Current target framework: net472\nRecommended target framework: net10.0",
+            "properties": {
+              "CurrentTargetFramework": "net472",
+              "RecommendedTargetFramework": "net10.0"
+            }
+          }
+        },
+        {
+          "incidentId": "879b2b7d-1081-4a05-93d3-b14b5fea2a29",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var description = new SubscriptionDescription(ShipmentTopicPath, name)\r\n            {\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n            };",
+              "protected": "M:System.TimeSpan.FromMinutes(System.Double)"
+            },
+            "kind": "File",
+            "path": "TopologyManager.cs",
+            "snippet": "var description = new SubscriptionDescription(ShipmentTopicPath, name)\r\n            {\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "label": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "properties": {
+              "CharCount": "4735"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 87,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "fe3c4556-faa5-4fb5-8600-f0e20a08ba03",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var description = new TopicDescription(ShipmentTopicPath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                EnableBatchedOperations = true,\r\n            };",
+              "protected": "M:System.TimeSpan.FromDays(System.Double)"
+            },
+            "kind": "File",
+            "path": "TopologyManager.cs",
+            "snippet": "var description = new TopicDescription(ShipmentTopicPath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                EnableBatchedOperations = true,\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromDays(System.Double)",
+            "label": "M:System.TimeSpan.FromDays(System.Double)",
+            "properties": {
+              "CharCount": "4735"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 59,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "1b56473c-6dfb-4750-9510-9ac7d23b9c54",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var description = new QueueDescription(OrderQueuePath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n                RequiresDuplicateDetection = true,\r\n                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10),\r\n                EnablePartitioning = false,\r\n            };",
+              "protected": "M:System.TimeSpan.FromMinutes(System.Double)"
+            },
+            "kind": "File",
+            "path": "TopologyManager.cs",
+            "snippet": "var description = new QueueDescription(OrderQueuePath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n                RequiresDuplicateDetection = true,\r\n                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10),\r\n                EnablePartitioning = false,\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "label": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "properties": {
+              "CharCount": "4735"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 37,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "3df69c18-b2eb-4e06-9af5-9602d35ce41d",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var description = new QueueDescription(OrderQueuePath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n                RequiresDuplicateDetection = true,\r\n                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10),\r\n                EnablePartitioning = false,\r\n            };",
+              "protected": "M:System.TimeSpan.FromMinutes(System.Double)"
+            },
+            "kind": "File",
+            "path": "TopologyManager.cs",
+            "snippet": "var description = new QueueDescription(OrderQueuePath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n                RequiresDuplicateDetection = true,\r\n                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10),\r\n                EnablePartitioning = false,\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "label": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "properties": {
+              "CharCount": "4735"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 37,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "9ba6a2df-c633-4ca8-b12c-afa151035a6a",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var description = new QueueDescription(OrderQueuePath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n                RequiresDuplicateDetection = true,\r\n                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10),\r\n                EnablePartitioning = false,\r\n            };",
+              "protected": "M:System.TimeSpan.FromDays(System.Double)"
+            },
+            "kind": "File",
+            "path": "TopologyManager.cs",
+            "snippet": "var description = new QueueDescription(OrderQueuePath)\r\n            {\r\n                MaxSizeInMegabytes = 5120,\r\n                DefaultMessageTimeToLive = TimeSpan.FromDays(7),\r\n                LockDuration = TimeSpan.FromMinutes(1),\r\n                MaxDeliveryCount = 5,\r\n                EnableDeadLetteringOnMessageExpiration = true,\r\n                RequiresDuplicateDetection = true,\r\n                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10),\r\n                EnablePartitioning = false,\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromDays(System.Double)",
+            "label": "M:System.TimeSpan.FromDays(System.Double)",
+            "properties": {
+              "CharCount": "4735"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 37,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "feb2aa49-1b41-4e8b-9918-c6e31b171ea1",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var message = new BrokeredMessage(order)\r\n            {\r\n                MessageId = order.OrderId,\r\n                CorrelationId = order.CustomerId,\r\n                Label = \u0022order-placed\u0022,\r\n                ContentType = \u0022application/xml\u0022,\r\n                TimeToLive = TimeSpan.FromHours(12),\r\n            };",
+              "protected": "M:System.TimeSpan.FromHours(System.Double)"
+            },
+            "kind": "File",
+            "path": "OrderSender.cs",
+            "snippet": "var message = new BrokeredMessage(order)\r\n            {\r\n                MessageId = order.OrderId,\r\n                CorrelationId = order.CustomerId,\r\n                Label = \u0022order-placed\u0022,\r\n                ContentType = \u0022application/xml\u0022,\r\n                TimeToLive = TimeSpan.FromHours(12),\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromHours(System.Double)",
+            "label": "M:System.TimeSpan.FromHours(System.Double)",
+            "properties": {
+              "CharCount": "4167"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 25,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "ea67e6d8-7452-430f-8a0e-132be3f62aa4",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "IEnumerable\u003CBrokeredMessage\u003E batch = await _queueClient\r\n                .ReceiveBatchAsync(maxMessages, TimeSpan.FromSeconds(5))\r\n                .ConfigureAwait(false);",
+              "protected": "M:System.TimeSpan.FromSeconds(System.Double)"
+            },
+            "kind": "File",
+            "path": "OrderProcessor.cs",
+            "snippet": "IEnumerable\u003CBrokeredMessage\u003E batch = await _queueClient\r\n                .ReceiveBatchAsync(maxMessages, TimeSpan.FromSeconds(5))\r\n                .ConfigureAwait(false);",
+            "protectedSnippet": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "label": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "properties": {
+              "CharCount": "5012"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 110,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "9be7f9ac-6134-480e-84be-b78c0a5f93ed",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var options = new OnMessageOptions\r\n            {\r\n                AutoComplete = false,\r\n                MaxConcurrentCalls = 4,\r\n                AutoRenewTimeout = TimeSpan.FromMinutes(1),\r\n            };",
+              "protected": "M:System.TimeSpan.FromMinutes(System.Double)"
+            },
+            "kind": "File",
+            "path": "OrderProcessor.cs",
+            "snippet": "var options = new OnMessageOptions\r\n            {\r\n                AutoComplete = false,\r\n                MaxConcurrentCalls = 4,\r\n                AutoRenewTimeout = TimeSpan.FromMinutes(1),\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "label": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "properties": {
+              "CharCount": "5012"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 28,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "9a06a963-6d9c-4fec-a073-5f9c052edd48",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var settings = new MessagingFactorySettings\r\n            {\r\n                TokenProvider = tokenProvider,\r\n                TransportType = TransportType.Amqp,\r\n                OperationTimeout = TimeSpan.FromSeconds(60),\r\n            };",
+              "protected": "M:System.TimeSpan.FromSeconds(System.Double)"
+            },
+            "kind": "File",
+            "path": "MessagingFactoryProvider.cs",
+            "snippet": "var settings = new MessagingFactorySettings\r\n            {\r\n                TokenProvider = tokenProvider,\r\n                TransportType = TransportType.Amqp,\r\n                OperationTimeout = TimeSpan.FromSeconds(60),\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "label": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "properties": {
+              "CharCount": "3187"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 53,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "0fb4220f-93e2-4871-ac5b-9ecbfaf4a624",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "Contoso.Ordering.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Uri address = ServiceBusEnvironment.CreateServiceUri(\u0022sb\u0022, serviceNamespace, string.Empty);",
+              "protected": "T:System.Uri"
+            },
+            "kind": "File",
+            "path": "MessagingFactoryProvider.cs",
+            "snippet": "Uri address = ServiceBusEnvironment.CreateServiceUri(\u0022sb\u0022, serviceNamespace, string.Empty);",
+            "protectedSnippet": "T:System.Uri",
+            "label": "T:System.Uri",
+            "properties": {
+              "CharCount": "3187"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 48,
+            "column": 12
+          }
+        }
+      ],
+      "features": []
+    }
+  ],
+  "rules": {
+    "NuGet.0001": {
+      "id": "NuGet.0001",
+      "isFeature": false,
+      "description": "NuGet package is incompatible with selected target framework.\n\nPackage needs to be upgraded to a version supporting selected project target framework. If there no new package versions supporting new target framework, different package needs to be used and all code needs to be upgraded to new API.",
+      "label": "NuGet package is incompatible",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262529",
+          "isCustom": false
+        }
+      ]
+    },
+    "Project.0002": {
+      "id": "Project.0002",
+      "isFeature": false,
+      "description": "Project\u0027s target framework(s) needs to be changed to the new target framework that you selected for this upgrade.\n\nDuring upgrade target framework will be adjusted to corresponding platform when applicable. In some cases project would result in multiple target frameworks after the upgrade if it was using features that now have their own platforms in modern .NET frameworks (windows, iOS, Android etc).",
+      "label": "Project\u0027s target framework(s) needs to be changed",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Overview of porting from .NET Framework to .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265227",
+          "isCustom": false
+        },
+        {
+          "title": ".NET project SDKs",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265226",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0002": {
+      "id": "Api.0002",
+      "isFeature": false,
+      "description": "API is source incompatible for selected .NET version: requires code changes to compile successfully when targeting a new version, such as removing obsolete APIs or changing method signatures.",
+      "label": "Source incompatible for selected .NET version",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0003": {
+      "id": "Api.0003",
+      "isFeature": false,
+      "description": "API has a behavioral change in selected .NET version: code and binaries may behave differently at runtime without needing recompilation, but the new behavior might be undesirable and require updates.",
+      "label": "Behavioral change in selected .NET version",
+      "severity": "Potential",
+      "effort": 1
+    }
+  }
+}

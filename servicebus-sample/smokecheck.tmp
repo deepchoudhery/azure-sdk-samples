@@ -1,0 +1,2 @@
+Set CONTOSO_SERVICEBUS_CONNECTION to run against a real Service Bus namespace.
+Nothing to do — exiting without contacting Azure.
