@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
 
 namespace Contoso.Ordering
 {
@@ -29,41 +28,34 @@ namespace Contoso.Ordering
             var topology = new TopologyManager(connectionString);
             await topology.EnsureTopologyAsync().ConfigureAwait(false);
 
-            using (MessagingFactoryProvider provider =
-                MessagingFactoryProvider.FromConnectionString(connectionString))
+            await using (ServiceBusClientProvider provider =
+                ServiceBusClientProvider.FromConnectionString(connectionString))
             {
-                QueueClient sendClient = provider.CreateQueueClient(TopologyManager.OrderQueuePath);
-                QueueClient receiveClient = provider.CreateQueueClient(
-                    TopologyManager.OrderQueuePath,
-                    ReceiveMode.PeekLock);
-
-                TopicClient topicClient =
-                    provider.CreateTopicClient(TopologyManager.ShipmentTopicPath);
-
-                SubscriptionClient subscriptionClient = provider.CreateSubscriptionClient(
-                    TopologyManager.ShipmentTopicPath,
-                    "expedited");
-
-                var sender = new OrderSender(sendClient);
-                var publisher = new ShipmentPublisher(topicClient);
-                var subscriber = new ShipmentSubscriber(subscriptionClient);
-
-                var processor = new OrderProcessor(
-                    receiveClient,
+                await using var sender = new OrderSender(
+                    provider.CreateSender(TopologyManager.OrderQueuePath));
+                await using var publisher = new ShipmentPublisher(
+                    provider.CreateSender(TopologyManager.ShipmentTopicPath));
+                await using var subscriber = new ShipmentSubscriber(provider);
+                await using var processor = new OrderProcessor(
+                    provider,
+                    provider.CreateReceiver(TopologyManager.OrderQueuePath),
                     order => Console.WriteLine($"Processed {order}"));
 
-                subscriber.Start((order, carrier) =>
-                {
-                    Console.WriteLine($"Shipping {order.OrderId} via {carrier}.");
-                    return Task.FromResult(0);
-                });
-
-                processor.Start();
+                await subscriber
+                    .StartAsync((order, carrier) =>
+                    {
+                        Console.WriteLine($"Shipping {order.OrderId} via {carrier}.");
+                        return Task.CompletedTask;
+                    })
+                    .ConfigureAwait(false);
+                await processor.Start().ConfigureAwait(false);
 
                 await sender.SendBatchAsync(BuildSampleOrders()).ConfigureAwait(false);
 
                 await sender
-                    .ScheduleAsync(BuildOrder("ORD-999", "west", 42m), DateTime.UtcNow.AddMinutes(5))
+                    .ScheduleAsync(
+                        BuildOrder("ORD-999", "west", 42m),
+                        DateTimeOffset.UtcNow.AddMinutes(5))
                     .ConfigureAwait(false);
 
                 await publisher.PublishAsync(BuildOrder("ORD-1000", "east", 1200m), "fabrikam-air")
@@ -73,10 +65,8 @@ namespace Contoso.Ordering
                 Console.WriteLine("Press ENTER to stop.");
                 Console.ReadLine();
 
-                processor.Stop();
-                subscriber.Stop();
-                publisher.Close();
-                sender.Close();
+                await processor.StopAsync().ConfigureAwait(false);
+                await subscriber.StopAsync().ConfigureAwait(false);
             }
 
             return 0;

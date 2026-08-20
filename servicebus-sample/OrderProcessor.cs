@@ -1,146 +1,144 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Messaging.ServiceBus;
 
 namespace Contoso.Ordering
 {
-    /// <summary>
-    /// Consumes the ordering queue with the legacy <c>OnMessage</c> pump and settles each
-    /// message by hand.
-    /// </summary>
-    public class OrderProcessor
+    public sealed class OrderProcessor : IAsyncDisposable
     {
-        private readonly QueueClient _queueClient;
+        private readonly ServiceBusClientProvider _provider;
+        private readonly ServiceBusReceiver _receiver;
         private readonly Action<OrderMessage> _handler;
+        private ServiceBusProcessor _processor;
 
-        public OrderProcessor(QueueClient queueClient, Action<OrderMessage> handler)
+        public OrderProcessor(
+            ServiceBusClientProvider provider,
+            ServiceBusReceiver receiver,
+            Action<OrderMessage> handler)
         {
-            _queueClient = queueClient ?? throw new ArgumentNullException(nameof(queueClient));
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            _receiver = receiver ?? throw new ArgumentNullException(nameof(receiver));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
 
-        /// <summary>
-        /// Synchronous message pump with manual settlement.
-        /// </summary>
-        public void Start()
+        public Task Start()
         {
-            var options = new OnMessageOptions
-            {
-                AutoComplete = false,
-                MaxConcurrentCalls = 4,
-                AutoRenewTimeout = TimeSpan.FromMinutes(1),
-            };
-
-            options.ExceptionReceived += OnExceptionReceived;
-
-            _queueClient.OnMessage(
-                message =>
-                {
-                    try
-                    {
-                        OrderMessage order = message.GetBody<OrderMessage>();
-
-                        object region;
-                        if (message.Properties.TryGetValue("region", out region))
-                        {
-                            Console.WriteLine($"Handling {order.OrderId} for region {region}.");
-                        }
-
-                        _handler(order);
-                        message.Complete();
-                    }
-                    catch (SerializationException)
-                    {
-                        // Poison payload — never going to succeed, so remove it from the queue.
-                        message.DeadLetter("DeserializationFailed", "Body was not an OrderMessage.");
-                    }
-                    catch (Exception)
-                    {
-                        if (message.DeliveryCount >= 5)
-                        {
-                            message.DeadLetter("TooManyAttempts", "Exceeded retry budget.");
-                        }
-                        else
-                        {
-                            message.Abandon();
-                        }
-                    }
-                },
-                options);
+            return StartProcessorAsync(4, TimeSpan.FromMinutes(1d));
         }
 
-        /// <summary>
-        /// Async variant of the same pump.
-        /// </summary>
-        public void StartAsync()
+        public Task StartAsync()
         {
-            var options = new OnMessageOptions
-            {
-                AutoComplete = false,
-                MaxConcurrentCalls = 8,
-            };
-
-            options.ExceptionReceived += OnExceptionReceived;
-
-            _queueClient.OnMessageAsync(
-                async message =>
-                {
-                    try
-                    {
-                        OrderMessage order = message.GetBody<OrderMessage>();
-                        _handler(order);
-                        await message.CompleteAsync().ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                        await message.AbandonAsync().ConfigureAwait(false);
-                    }
-                },
-                options);
+            return StartProcessorAsync(8, TimeSpan.FromMinutes(5d));
         }
 
-        /// <summary>
-        /// Explicit pull-based drain, used by the nightly reconciliation job.
-        /// </summary>
         public async Task<IReadOnlyList<OrderMessage>> DrainAsync(int maxMessages)
         {
             var drained = new List<OrderMessage>();
 
-            IEnumerable<BrokeredMessage> batch = await _queueClient
-                .ReceiveBatchAsync(maxMessages, TimeSpan.FromSeconds(5))
+            IReadOnlyList<ServiceBusReceivedMessage> batch = await _receiver
+                .ReceiveMessagesAsync(maxMessages, TimeSpan.FromSeconds(5d))
                 .ConfigureAwait(false);
 
-            foreach (BrokeredMessage message in batch)
+            foreach (ServiceBusReceivedMessage message in batch)
             {
-                drained.Add(message.GetBody<OrderMessage>());
-                await message.CompleteAsync().ConfigureAwait(false);
+                drained.Add(message.Body.ToObjectFromJson<OrderMessage>());
+                await _receiver.CompleteMessageAsync(message).ConfigureAwait(false);
             }
 
             return drained;
         }
 
-        /// <summary>
-        /// Peeks a single message without removing it from the queue.
-        /// </summary>
         public async Task<OrderMessage> PeekAsync()
         {
-            BrokeredMessage message = await _queueClient.PeekAsync().ConfigureAwait(false);
-            return message?.GetBody<OrderMessage>();
+            ServiceBusReceivedMessage message = await _receiver
+                .PeekMessageAsync()
+                .ConfigureAwait(false);
+            return message?.Body.ToObjectFromJson<OrderMessage>();
         }
 
-        public void Stop()
+        public async Task StopAsync()
         {
-            _queueClient.Close();
-        }
-
-        private static void OnExceptionReceived(object sender, ExceptionReceivedEventArgs e)
-        {
-            if (e.Exception != null)
+            if (_processor != null && _processor.IsProcessing)
             {
-                Console.Error.WriteLine($"Service Bus error during {e.Action}: {e.Exception.Message}");
+                await _processor.StopProcessingAsync().ConfigureAwait(false);
             }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await StopAsync().ConfigureAwait(false);
+            if (_processor != null)
+            {
+                await _processor.DisposeAsync().ConfigureAwait(false);
+            }
+            await _receiver.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private async Task StartProcessorAsync(
+            int maxConcurrentCalls,
+            TimeSpan maxAutoLockRenewalDuration)
+        {
+            if (_processor != null)
+            {
+                throw new InvalidOperationException("The order processor has already been started.");
+            }
+
+            _processor = _provider.CreateQueueProcessor(
+                TopologyManager.OrderQueuePath,
+                maxConcurrentCalls,
+                maxAutoLockRenewalDuration);
+            _processor.ProcessMessageAsync += ProcessMessageAsync;
+            _processor.ProcessErrorAsync += ProcessErrorAsync;
+            await _processor.StartProcessingAsync().ConfigureAwait(false);
+        }
+
+        private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
+        {
+            try
+            {
+                OrderMessage order = args.Message.Body.ToObjectFromJson<OrderMessage>();
+
+                if (args.Message.ApplicationProperties.TryGetValue("region", out object region))
+                {
+                    Console.WriteLine($"Handling {order.OrderId} for region {region}.");
+                }
+
+                _handler(order);
+                await args.CompleteMessageAsync(args.Message).ConfigureAwait(false);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                await args
+                    .DeadLetterMessageAsync(
+                        args.Message,
+                        "DeserializationFailed",
+                        "Body was not an OrderMessage.")
+                    .ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                if (args.Message.DeliveryCount >= 5)
+                {
+                    await args
+                        .DeadLetterMessageAsync(
+                            args.Message,
+                            "TooManyAttempts",
+                            "Exceeded retry budget.")
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await args.AbandonMessageAsync(args.Message).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static Task ProcessErrorAsync(ProcessErrorEventArgs args)
+        {
+            Console.Error.WriteLine(
+                $"Service Bus error during {args.ErrorSource}: {args.Exception.Message}");
+            return Task.CompletedTask;
         }
     }
 }

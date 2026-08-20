@@ -1,98 +1,110 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Messaging.ServiceBus;
 
 namespace Contoso.Ordering
 {
-    /// <summary>
-    /// Fan-out side of the pipeline: shipments are published to a topic and each downstream
-    /// team owns a filtered subscription.
-    /// </summary>
-    public class ShipmentPublisher
+    public sealed class ShipmentPublisher : IAsyncDisposable
     {
-        private readonly TopicClient _topicClient;
+        private readonly ServiceBusSender _sender;
 
-        public ShipmentPublisher(TopicClient topicClient)
+        public ShipmentPublisher(ServiceBusSender sender)
         {
-            _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
+            _sender = sender ?? throw new ArgumentNullException(nameof(sender));
         }
 
         public async Task PublishAsync(OrderMessage order, string carrier)
         {
-            var message = new BrokeredMessage(order)
+            var message = new ServiceBusMessage(BinaryData.FromObjectAsJson(order))
             {
                 MessageId = $"{order.OrderId}:{carrier}",
-                Label = "shipment-ready",
+                Subject = "shipment-ready",
+                ContentType = "application/json",
             };
 
-            message.Properties["region"] = order.Region;
-            message.Properties["carrier"] = carrier;
-            message.Properties["expedited"] = order.Total > 500m;
+            message.ApplicationProperties["region"] = order.Region;
+            message.ApplicationProperties["carrier"] = carrier;
+            message.ApplicationProperties["expedited"] = order.Total > 500m;
 
-            await _topicClient.SendAsync(message).ConfigureAwait(false);
+            await _sender.SendMessageAsync(message).ConfigureAwait(false);
         }
 
-        public void Close()
+        public ValueTask DisposeAsync()
         {
-            _topicClient.Close();
+            return _sender.DisposeAsync();
         }
     }
 
-    /// <summary>
-    /// Consumes one subscription of the shipments topic.
-    /// </summary>
-    public class ShipmentSubscriber
+    public sealed class ShipmentSubscriber : IAsyncDisposable
     {
-        private readonly SubscriptionClient _subscriptionClient;
+        private readonly ServiceBusClientProvider _provider;
+        private ServiceBusProcessor _processor;
+        private Func<OrderMessage, string, Task> _onShipment;
 
-        public ShipmentSubscriber(SubscriptionClient subscriptionClient)
+        public ShipmentSubscriber(ServiceBusClientProvider provider)
         {
-            _subscriptionClient = subscriptionClient
-                ?? throw new ArgumentNullException(nameof(subscriptionClient));
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
-        public void Start(Func<OrderMessage, string, Task> onShipment)
+        public async Task StartAsync(Func<OrderMessage, string, Task> onShipment)
         {
-            var options = new OnMessageOptions
+            if (_processor != null)
             {
-                AutoComplete = false,
-                MaxConcurrentCalls = 2,
-            };
+                throw new InvalidOperationException("The shipment subscriber has already been started.");
+            }
 
-            options.ExceptionReceived += (sender, e) =>
-            {
-                if (e.Exception != null)
-                {
-                    Console.Error.WriteLine($"Subscription error: {e.Exception.Message}");
-                }
-            };
-
-            _subscriptionClient.OnMessageAsync(
-                async message =>
-                {
-                    OrderMessage order = message.GetBody<OrderMessage>();
-
-                    object carrier;
-                    message.Properties.TryGetValue("carrier", out carrier);
-
-                    try
-                    {
-                        await onShipment(order, carrier as string).ConfigureAwait(false);
-                        await message.CompleteAsync().ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        await message
-                            .DeadLetterAsync("ShipmentHandlerFailed", ex.Message)
-                            .ConfigureAwait(false);
-                    }
-                },
-                options);
+            _onShipment = onShipment ?? throw new ArgumentNullException(nameof(onShipment));
+            _processor = _provider.CreateSubscriptionProcessor(
+                TopologyManager.ShipmentTopicPath,
+                "expedited",
+                2);
+            _processor.ProcessMessageAsync += ProcessMessageAsync;
+            _processor.ProcessErrorAsync += ProcessErrorAsync;
+            await _processor.StartProcessingAsync().ConfigureAwait(false);
         }
 
-        public void Stop()
+        public async Task StopAsync()
         {
-            _subscriptionClient.Close();
+            if (_processor != null && _processor.IsProcessing)
+            {
+                await _processor.StopProcessingAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await StopAsync().ConfigureAwait(false);
+            if (_processor != null)
+            {
+                await _processor.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+
+        private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
+        {
+            OrderMessage order = args.Message.Body.ToObjectFromJson<OrderMessage>();
+            args.Message.ApplicationProperties.TryGetValue("carrier", out object carrier);
+
+            try
+            {
+                await _onShipment(order, carrier as string).ConfigureAwait(false);
+                await args.CompleteMessageAsync(args.Message).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await args
+                    .DeadLetterMessageAsync(
+                        args.Message,
+                        "ShipmentHandlerFailed",
+                        ex.Message)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private static Task ProcessErrorAsync(ProcessErrorEventArgs args)
+        {
+            Console.Error.WriteLine($"Subscription error: {args.Exception.Message}");
+            return Task.CompletedTask;
         }
     }
 }
