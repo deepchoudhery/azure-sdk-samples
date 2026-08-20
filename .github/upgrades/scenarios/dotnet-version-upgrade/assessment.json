@@ -1,0 +1,341 @@
+{
+  "settings": {
+    "components": {
+      "code": true,
+      "binaries": false
+    },
+    "targetId": "net10.0",
+    "targetDisplayName": ".NETCoreApp,Version=v10.0"
+  },
+  "analysisStartTime": "2026-08-20T21:02:26.3254994Z",
+  "analysisEndTime": "2026-08-20T21:02:29.2194001Z",
+  "privacyModeHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2270980",
+  "stats": {
+    "summary": {
+      "projects": 1,
+      "issues": 3,
+      "incidents": 8,
+      "effort": 8
+    },
+    "charts": {
+      "severity": {
+        "Mandatory": 1,
+        "Optional": 0,
+        "Potential": 7,
+        "Information": 0
+      },
+      "category": {
+        "Project": 1,
+        "Api": 7
+      }
+    }
+  },
+  "projects": [
+    {
+      "path": "Contoso.Documents.csproj",
+      "startingProject": true,
+      "issues": 3,
+      "storyPoints": 8,
+      "properties": {
+        "appName": "Contoso.Documents",
+        "projectKind": "DotNetCoreApp",
+        "frameworks": [
+          "net8.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "isTestProject": false,
+        "numberOfFiles": 7,
+        "numberOfCodeFiles": 7,
+        "linesTotal": 843,
+        "linesOfCode": 843,
+        "totalApiScanned": 360,
+        "minLinesOfCodeToChange": 7,
+        "maxLinesOfCodeToChange": 7
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "1b2470d3-2c38-4fd3-b0ae-872958a5cec3",
+          "ruleId": "Project.0002",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net8.0\nRecommended target framework: net10.0",
+              "protected": "Current target framework: net8.0\nRecommended target framework: net10.0"
+            },
+            "kind": "File",
+            "path": "Contoso.Documents.csproj",
+            "snippet": "Current target framework: net8.0\nRecommended target framework: net10.0",
+            "protectedSnippet": "Current target framework: net8.0\nRecommended target framework: net10.0",
+            "properties": {
+              "CurrentTargetFramework": "net8.0",
+              "RecommendedTargetFramework": "net10.0"
+            }
+          }
+        },
+        {
+          "incidentId": "aa01e35a-25bb-4c9c-ad52-279f2c1023b3",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "get { return _account.BlobEndpoint; }",
+              "protected": "T:System.Uri"
+            },
+            "kind": "File",
+            "path": "StorageAccountFactory.cs",
+            "snippet": "get { return _account.BlobEndpoint; }",
+            "protectedSnippet": "T:System.Uri",
+            "label": "T:System.Uri",
+            "properties": {
+              "CharCount": "3706"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 107,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "ca459073-7b0f-42cc-bf7a-12bb5a803e52",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "public Uri BlobEndpoint",
+              "protected": "T:System.Uri"
+            },
+            "kind": "File",
+            "path": "StorageAccountFactory.cs",
+            "snippet": "public Uri BlobEndpoint",
+            "protectedSnippet": "T:System.Uri",
+            "label": "T:System.Uri",
+            "properties": {
+              "CharCount": "3706"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 105,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "aaa2c6c1-01cc-4154-8dc7-ccd364d71c95",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "client.DefaultRequestOptions = new QueueRequestOptions\r\n            {\r\n                RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(2), 3),\r\n            };",
+              "protected": "M:System.TimeSpan.FromSeconds(System.Double)"
+            },
+            "kind": "File",
+            "path": "StorageAccountFactory.cs",
+            "snippet": "client.DefaultRequestOptions = new QueueRequestOptions\r\n            {\r\n                RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(2), 3),\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "label": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "properties": {
+              "CharCount": "3706"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 87,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "dba57faa-79e3-4e46-ad61-b2465cc3e02b",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "client.DefaultRequestOptions = new BlobRequestOptions\r\n            {\r\n                RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), 4),\r\n                MaximumExecutionTime = TimeSpan.FromMinutes(5),\r\n                ParallelOperationThreadCount = 4,\r\n            };",
+              "protected": "M:System.TimeSpan.FromMinutes(System.Double)"
+            },
+            "kind": "File",
+            "path": "StorageAccountFactory.cs",
+            "snippet": "client.DefaultRequestOptions = new BlobRequestOptions\r\n            {\r\n                RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), 4),\r\n                MaximumExecutionTime = TimeSpan.FromMinutes(5),\r\n                ParallelOperationThreadCount = 4,\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "label": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "properties": {
+              "CharCount": "3706"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 73,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "1fbdb79c-22c4-468e-b632-5b020418f80d",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "client.DefaultRequestOptions = new BlobRequestOptions\r\n            {\r\n                RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), 4),\r\n                MaximumExecutionTime = TimeSpan.FromMinutes(5),\r\n                ParallelOperationThreadCount = 4,\r\n            };",
+              "protected": "M:System.TimeSpan.FromSeconds(System.Double)"
+            },
+            "kind": "File",
+            "path": "StorageAccountFactory.cs",
+            "snippet": "client.DefaultRequestOptions = new BlobRequestOptions\r\n            {\r\n                RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), 4),\r\n                MaximumExecutionTime = TimeSpan.FromMinutes(5),\r\n                ParallelOperationThreadCount = 4,\r\n            };",
+            "protectedSnippet": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "label": "M:System.TimeSpan.FromSeconds(System.Double)",
+            "properties": {
+              "CharCount": "3706"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 73,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "0e4d2177-f25f-4b1a-8540-9837b24f81ee",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "IEnumerable\u003CCloudQueueMessage\u003E messages = await _queue\r\n                .GetMessagesAsync(count, TimeSpan.FromMinutes(2), null, null)\r\n                .ConfigureAwait(false);",
+              "protected": "M:System.TimeSpan.FromMinutes(System.Double)"
+            },
+            "kind": "File",
+            "path": "QueueRepository.cs",
+            "snippet": "IEnumerable\u003CCloudQueueMessage\u003E messages = await _queue\r\n                .GetMessagesAsync(count, TimeSpan.FromMinutes(2), null, null)\r\n                .ConfigureAwait(false);",
+            "protectedSnippet": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "label": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "properties": {
+              "CharCount": "3501"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 66,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "8974b8ad-a424-4fd2-8ddd-73abaa9f39b9",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "Contoso.Documents.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "await _queue\r\n                .AddMessageAsync(message, TimeSpan.FromDays(7), delay, null, null)\r\n                .ConfigureAwait(false);",
+              "protected": "M:System.TimeSpan.FromDays(System.Double)"
+            },
+            "kind": "File",
+            "path": "QueueRepository.cs",
+            "snippet": "await _queue\r\n                .AddMessageAsync(message, TimeSpan.FromDays(7), delay, null, null)\r\n                .ConfigureAwait(false);",
+            "protectedSnippet": "M:System.TimeSpan.FromDays(System.Double)",
+            "label": "M:System.TimeSpan.FromDays(System.Double)",
+            "properties": {
+              "CharCount": "3501"
+            },
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 37,
+            "column": 12
+          }
+        }
+      ],
+      "features": []
+    }
+  ],
+  "rules": {
+    "Project.0002": {
+      "id": "Project.0002",
+      "isFeature": false,
+      "description": "Project\u0027s target framework(s) needs to be changed to the new target framework that you selected for this upgrade.\n\nDuring upgrade target framework will be adjusted to corresponding platform when applicable. In some cases project would result in multiple target frameworks after the upgrade if it was using features that now have their own platforms in modern .NET frameworks (windows, iOS, Android etc).",
+      "label": "Project\u0027s target framework(s) needs to be changed",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Overview of porting from .NET Framework to .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265227",
+          "isCustom": false
+        },
+        {
+          "title": ".NET project SDKs",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265226",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0003": {
+      "id": "Api.0003",
+      "isFeature": false,
+      "description": "API has a behavioral change in selected .NET version: code and binaries may behave differently at runtime without needing recompilation, but the new behavior might be undesirable and require updates.",
+      "label": "Behavioral change in selected .NET version",
+      "severity": "Potential",
+      "effort": 1
+    },
+    "Api.0002": {
+      "id": "Api.0002",
+      "isFeature": false,
+      "description": "API is source incompatible for selected .NET version: requires code changes to compile successfully when targeting a new version, such as removing obsolete APIs or changing method signatures.",
+      "label": "Source incompatible for selected .NET version",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    }
+  }
+}
