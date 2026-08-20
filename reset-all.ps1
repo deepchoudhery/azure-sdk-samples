@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Resets every sample repository back to its committed pre-migration baseline.
+    Resets every sample directory back to its committed pre-migration baseline.
 
 .DESCRIPTION
     Run this between skill runs so each test starts from an identical clean tree.
@@ -18,14 +18,14 @@ $samples = @('keyvault-sample', 'servicebus-sample', 'storage-sample')
 foreach ($sample in $samples) {
     $path = Join-Path $root $sample
 
-    if (-not (Test-Path (Join-Path $path '.git'))) {
-        Write-Warning "$sample is not a git repository; skipping."
+    if (-not (Test-Path $path)) {
+        Write-Warning "$sample was not found under $root; skipping."
         continue
     }
 
-    if ($PSCmdlet.ShouldProcess($sample, 'git reset --hard && git clean -xfd')) {
-        & git -C $path reset --hard HEAD | Out-Null
-        & git -C $path clean -xfd | Out-Null
+    if ($PSCmdlet.ShouldProcess($sample, 'git checkout && git clean -xfd')) {
+        & git -C $root checkout -- $sample | Out-Null
+        & git -C $root clean -xfd -- $sample | Out-Null
         Write-Host "$sample reset to baseline." -ForegroundColor Green
     }
 }

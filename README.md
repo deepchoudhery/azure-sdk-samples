@@ -3,9 +3,10 @@
 Three deliberately **legacy** .NET applications used to test the `migrating-azure-*`
 lazy skills shipped by the modernization agent.
 
-Each sample is a self-contained git repository in the "before" state: it compiles,
-it references a deprecated Azure SDK, and it exercises a broad slice of that SDK's
-API surface so the corresponding skill has something meaningful to convert.
+Each sample is a self-contained project directory in this repository, kept in the
+"before" state: it compiles, it references a deprecated Azure SDK, and it exercises a
+broad slice of that SDK's API surface so the corresponding skill has something
+meaningful to convert.
 
 | Sample | Deprecated package(s) | TFM | Skill under test |
 |--------|----------------------|-----|------------------|
@@ -29,8 +30,8 @@ are the signal the skills key off.
 
 ## Running a skill against a sample
 
-Each sample is its own git repo, so the agent sees a clean tree and you can diff
-precisely what the skill changed.
+Point the agent at the sample directory you want to migrate, then diff just that
+directory to see precisely what the skill changed.
 
 ```powershell
 cd Q:\azure-sdk-samples\keyvault-sample
@@ -40,7 +41,7 @@ copilot            # then ask it to migrate off the deprecated Key Vault SDK
 After the run:
 
 ```powershell
-git -C Q:\azure-sdk-samples\keyvault-sample diff
+git -C Q:\azure-sdk-samples diff -- keyvault-sample
 dotnet build Q:\azure-sdk-samples\keyvault-sample
 ```
 
@@ -62,7 +63,7 @@ the scoring rubric. A migration is only correct if:
 .\reset-all.ps1
 ```
 
-This hard-resets each sample repo back to its committed baseline.
+This hard-resets every sample directory back to its committed baseline.
 
 ## Note on credentials
 
