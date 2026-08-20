@@ -1,111 +1,91 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.File;
+using Azure.Storage.Files.Shares;
+using Azure.Storage.Files.Shares.Models;
 
 namespace Contoso.Documents
 {
-    /// <summary>
-    /// Legacy on-premises integration: a partner drops files onto an SMB share that is backed
-    /// by Azure Files.
-    /// </summary>
     public class FileShareRepository
     {
-        private readonly CloudFileShare _share;
+        private readonly ShareClient _share;
 
-        public FileShareRepository(CloudFileClient client, string shareName)
+        public FileShareRepository(ShareServiceClient client, string shareName)
         {
-            _share = client.GetShareReference(shareName);
+            _share = client.GetShareClient(shareName);
         }
 
-        public async Task InitializeAsync()
-        {
+        public async Task InitializeAsync() =>
             await _share.CreateIfNotExistsAsync().ConfigureAwait(false);
-        }
 
         public async Task UploadAsync(string directoryName, string fileName, Stream content)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-
+            ShareDirectoryClient directory =
+                _share.GetRootDirectoryClient().GetSubdirectoryClient(directoryName);
             await directory.CreateIfNotExistsAsync().ConfigureAwait(false);
+            ShareFileClient file = directory.GetFileClient(fileName);
 
-            CloudFile file = directory.GetFileReference(fileName);
-            await file.UploadFromStreamAsync(content).ConfigureAwait(false);
+            MemoryStream buffer = null;
+            Stream upload = content;
+            if (!content.CanSeek)
+            {
+                buffer = new MemoryStream();
+                await content.CopyToAsync(buffer).ConfigureAwait(false);
+                buffer.Position = 0;
+                upload = buffer;
+            }
+
+            try
+            {
+                await file.CreateAsync(upload.Length - upload.Position).ConfigureAwait(false);
+                await file.UploadAsync(upload).ConfigureAwait(false);
+            }
+            finally
+            {
+                buffer?.Dispose();
+            }
         }
 
         public async Task<Stream> DownloadAsync(string directoryName, string fileName)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-            CloudFile file = directory.GetFileReference(fileName);
-
+            ShareFileClient file = GetFile(directoryName, fileName);
             var buffer = new MemoryStream();
-            await file.DownloadToStreamAsync(buffer).ConfigureAwait(false);
+            ShareFileDownloadInfo download = (await file.DownloadAsync().ConfigureAwait(false)).Value;
+            await download.Content.CopyToAsync(buffer).ConfigureAwait(false);
             buffer.Position = 0;
-
             return buffer;
         }
 
-        public async Task<bool> ExistsAsync(string directoryName, string fileName)
-        {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-            CloudFile file = directory.GetFileReference(fileName);
+        public async Task<bool> ExistsAsync(string directoryName, string fileName) =>
+            (await GetFile(directoryName, fileName).ExistsAsync().ConfigureAwait(false)).Value;
 
-            return await file.ExistsAsync().ConfigureAwait(false);
-        }
+        public async Task<bool> DeleteAsync(string directoryName, string fileName) =>
+            (await GetFile(directoryName, fileName).DeleteIfExistsAsync().ConfigureAwait(false)).Value;
 
-        public async Task<bool> DeleteAsync(string directoryName, string fileName)
-        {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-            CloudFile file = directory.GetFileReference(fileName);
-
-            return await file.DeleteIfExistsAsync().ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Segmented directory listing, mirroring the blob listing shape.
-        /// </summary>
         public async Task<IReadOnlyList<string>> ListAsync(string directoryName)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-
+            ShareDirectoryClient directory =
+                _share.GetRootDirectoryClient().GetSubdirectoryClient(directoryName);
             var names = new List<string>();
-            FileContinuationToken token = null;
-
-            do
+            await foreach (ShareFileItem item in directory.GetFilesAndDirectoriesAsync())
             {
-                FileResultSegment segment = await directory
-                    .ListFilesAndDirectoriesSegmentedAsync(token)
-                    .ConfigureAwait(false);
-
-                foreach (IListFileItem item in segment.Results)
+                if (!item.IsDirectory)
                 {
-                    var file = item as CloudFile;
-                    if (file != null)
-                    {
-                        names.Add(file.Name);
-                    }
+                    names.Add(item.Name);
                 }
-
-                token = segment.ContinuationToken;
             }
-            while (token != null);
-
             return names;
         }
 
-        /// <summary>
-        /// Reads the share quota so the ops dashboard can alert before it fills up.
-        /// </summary>
         public async Task<int> GetQuotaInGigabytesAsync()
         {
-            await _share.FetchAttributesAsync().ConfigureAwait(false);
-            return _share.Properties.Quota ?? 0;
+            ShareProperties properties = (await _share.GetPropertiesAsync().ConfigureAwait(false)).Value;
+            return properties.QuotaInGB ?? 0;
         }
+
+        private ShareFileClient GetFile(string directoryName, string fileName) =>
+            _share.GetRootDirectoryClient()
+                .GetSubdirectoryClient(directoryName)
+                .GetFileClient(fileName);
     }
 }
