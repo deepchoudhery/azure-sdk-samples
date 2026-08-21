@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.File;
+using Azure;
+using Azure.Storage.Files.Shares;
+using Azure.Storage.Files.Shares.Models;
 
 namespace Contoso.Documents
 {
@@ -12,11 +14,12 @@ namespace Contoso.Documents
     /// </summary>
     public class FileShareRepository
     {
-        private readonly CloudFileShare _share;
+        private const int UploadRangeSize = 4 * 1024 * 1024;
+        private readonly ShareClient _share;
 
-        public FileShareRepository(CloudFileClient client, string shareName)
+        public FileShareRepository(ShareServiceClient client, string shareName)
         {
-            _share = client.GetShareReference(shareName);
+            _share = client.GetShareClient(shareName);
         }
 
         public async Task InitializeAsync()
@@ -26,23 +29,61 @@ namespace Contoso.Documents
 
         public async Task UploadAsync(string directoryName, string fileName, Stream content)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
+            ShareDirectoryClient directory = _share
+                .GetRootDirectoryClient()
+                .GetSubdirectoryClient(directoryName);
 
             await directory.CreateIfNotExistsAsync().ConfigureAwait(false);
 
-            CloudFile file = directory.GetFileReference(fileName);
-            await file.UploadFromStreamAsync(content).ConfigureAwait(false);
+            ShareFileClient file = directory.GetFileClient(fileName);
+            Stream upload = content;
+            MemoryStream buffered = null;
+
+            if (!content.CanSeek)
+            {
+                buffered = new MemoryStream();
+                await content.CopyToAsync(buffered).ConfigureAwait(false);
+                buffered.Position = 0;
+                upload = buffered;
+            }
+
+            try
+            {
+                long length = upload.Length - upload.Position;
+                await file.CreateAsync(length).ConfigureAwait(false);
+
+                long offset = 0;
+                byte[] buffer = new byte[UploadRangeSize];
+                while (offset < length)
+                {
+                    int bytesToRead = (int)Math.Min(buffer.Length, length - offset);
+                    int bytesRead = await ReadChunkAsync(upload, buffer, bytesToRead).ConfigureAwait(false);
+                    using var range = new MemoryStream(buffer, 0, bytesRead, writable: false);
+                    await file
+                        .UploadRangeAsync(new HttpRange(offset, bytesRead), range)
+                        .ConfigureAwait(false);
+                    offset += bytesRead;
+                }
+            }
+            finally
+            {
+                buffered?.Dispose();
+            }
         }
 
         public async Task<Stream> DownloadAsync(string directoryName, string fileName)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-            CloudFile file = directory.GetFileReference(fileName);
+            ShareFileClient file = _share
+                .GetRootDirectoryClient()
+                .GetSubdirectoryClient(directoryName)
+                .GetFileClient(fileName);
 
             var buffer = new MemoryStream();
-            await file.DownloadToStreamAsync(buffer).ConfigureAwait(false);
+            ShareFileDownloadInfo download = (await file.DownloadAsync().ConfigureAwait(false)).Value;
+            using (download.Content)
+            {
+                await download.Content.CopyToAsync(buffer).ConfigureAwait(false);
+            }
             buffer.Position = 0;
 
             return buffer;
@@ -50,20 +91,22 @@ namespace Contoso.Documents
 
         public async Task<bool> ExistsAsync(string directoryName, string fileName)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-            CloudFile file = directory.GetFileReference(fileName);
+            ShareFileClient file = _share
+                .GetRootDirectoryClient()
+                .GetSubdirectoryClient(directoryName)
+                .GetFileClient(fileName);
 
-            return await file.ExistsAsync().ConfigureAwait(false);
+            return (await file.ExistsAsync().ConfigureAwait(false)).Value;
         }
 
         public async Task<bool> DeleteAsync(string directoryName, string fileName)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
-            CloudFile file = directory.GetFileReference(fileName);
+            ShareFileClient file = _share
+                .GetRootDirectoryClient()
+                .GetSubdirectoryClient(directoryName)
+                .GetFileClient(fileName);
 
-            return await file.DeleteIfExistsAsync().ConfigureAwait(false);
+            return (await file.DeleteIfExistsAsync().ConfigureAwait(false)).Value;
         }
 
         /// <summary>
@@ -71,30 +114,20 @@ namespace Contoso.Documents
         /// </summary>
         public async Task<IReadOnlyList<string>> ListAsync(string directoryName)
         {
-            CloudFileDirectory root = _share.GetRootDirectoryReference();
-            CloudFileDirectory directory = root.GetDirectoryReference(directoryName);
+            ShareDirectoryClient directory = _share
+                .GetRootDirectoryClient()
+                .GetSubdirectoryClient(directoryName);
 
             var names = new List<string>();
-            FileContinuationToken token = null;
-
-            do
+            await foreach (ShareFileItem item in directory
+                .GetFilesAndDirectoriesAsync()
+                .ConfigureAwait(false))
             {
-                FileResultSegment segment = await directory
-                    .ListFilesAndDirectoriesSegmentedAsync(token)
-                    .ConfigureAwait(false);
-
-                foreach (IListFileItem item in segment.Results)
+                if (!item.IsDirectory)
                 {
-                    var file = item as CloudFile;
-                    if (file != null)
-                    {
-                        names.Add(file.Name);
-                    }
+                    names.Add(item.Name);
                 }
-
-                token = segment.ContinuationToken;
             }
-            while (token != null);
 
             return names;
         }
@@ -104,8 +137,27 @@ namespace Contoso.Documents
         /// </summary>
         public async Task<int> GetQuotaInGigabytesAsync()
         {
-            await _share.FetchAttributesAsync().ConfigureAwait(false);
-            return _share.Properties.Quota ?? 0;
+            ShareProperties properties = (await _share.GetPropertiesAsync().ConfigureAwait(false)).Value;
+            return properties.QuotaInGB ?? 0;
+        }
+
+        private static async Task<int> ReadChunkAsync(Stream stream, byte[] buffer, int count)
+        {
+            int totalRead = 0;
+            while (totalRead < count)
+            {
+                int read = await stream
+                    .ReadAsync(buffer.AsMemory(totalRead, count - totalRead))
+                    .ConfigureAwait(false);
+                if (read == 0)
+                {
+                    throw new EndOfStreamException("The source stream ended before its declared length.");
+                }
+
+                totalRead += read;
+            }
+
+            return totalRead;
         }
     }
 }

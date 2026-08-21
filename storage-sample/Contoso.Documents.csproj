@@ -2,17 +2,19 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Contoso.Documents</RootNamespace>
     <AssemblyName>Contoso.Documents</AssemblyName>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <!-- The whole point of this sample is that it references a deprecated package. -->
-    <NoWarn>$(NoWarn);NU1902;NU1903;CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.10.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.29.1" />
+    <PackageReference Include="Azure.Storage.Files.Shares" Version="12.27.1" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.27.1" />
   </ItemGroup>
 
 </Project>

@@ -1,30 +1,42 @@
 using System;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.File;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure;
+using Azure.Core;
+using Azure.Data.Tables;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Files.Shares;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 
 namespace Contoso.Documents
 {
     /// <summary>
-    /// Single entry point for every storage service. <see cref="CloudStorageAccount"/> is the
-    /// legacy façade that hands out per-service clients.
+    /// Single entry point for every storage service.
     /// </summary>
     public class StorageAccountFactory
     {
-        private readonly CloudStorageAccount _account;
+        private readonly string _connectionString;
+        private readonly string _accountName;
+        private readonly StorageSharedKeyCredential _sharedKeyCredential;
+        private readonly TableSharedKeyCredential _tableSharedKeyCredential;
+        private readonly AzureSasCredential _sasCredential;
 
         public StorageAccountFactory(string connectionString)
         {
-            _account = CloudStorageAccount.Parse(connectionString);
+            _ = new BlobServiceClient(connectionString);
+            _connectionString = connectionString;
         }
 
-        private StorageAccountFactory(CloudStorageAccount account)
+        private StorageAccountFactory(
+            string accountName,
+            StorageSharedKeyCredential sharedKeyCredential,
+            TableSharedKeyCredential tableSharedKeyCredential,
+            AzureSasCredential sasCredential)
         {
-            _account = account;
+            _accountName = accountName;
+            _sharedKeyCredential = sharedKeyCredential;
+            _tableSharedKeyCredential = tableSharedKeyCredential;
+            _sasCredential = sasCredential;
         }
 
         /// <summary>
@@ -32,12 +44,16 @@ namespace Contoso.Documents
         /// </summary>
         public static bool TryCreate(string connectionString, out StorageAccountFactory factory)
         {
-            CloudStorageAccount account;
-
-            if (CloudStorageAccount.TryParse(connectionString, out account))
+            try
             {
-                factory = new StorageAccountFactory(account);
+                factory = new StorageAccountFactory(connectionString);
                 return true;
+            }
+            catch (ArgumentException)
+            {
+            }
+            catch (FormatException)
+            {
             }
 
             factory = null;
@@ -50,10 +66,11 @@ namespace Contoso.Documents
         /// </summary>
         public static StorageAccountFactory FromSharedKey(string accountName, string accountKey)
         {
-            var credentials = new StorageCredentials(accountName, accountKey);
-            var account = new CloudStorageAccount(credentials, useHttps: true);
-
-            return new StorageAccountFactory(account);
+            return new StorageAccountFactory(
+                accountName,
+                new StorageSharedKeyCredential(accountName, accountKey),
+                new TableSharedKeyCredential(accountName, accountKey),
+                sasCredential: null);
         }
 
         /// <summary>
@@ -61,51 +78,83 @@ namespace Contoso.Documents
         /// </summary>
         public static StorageAccountFactory FromSasToken(string accountName, string sasToken)
         {
-            var credentials = new StorageCredentials(sasToken);
-            var account = new CloudStorageAccount(credentials, accountName, endpointSuffix: null, useHttps: true);
-
-            return new StorageAccountFactory(account);
+            return new StorageAccountFactory(
+                accountName,
+                sharedKeyCredential: null,
+                tableSharedKeyCredential: null,
+                new AzureSasCredential(sasToken.TrimStart('?')));
         }
 
-        public CloudBlobClient CreateBlobClient()
+        public BlobServiceClient CreateBlobClient()
         {
-            CloudBlobClient client = _account.CreateCloudBlobClient();
+            var options = new BlobClientOptions();
+            options.Retry.Mode = RetryMode.Exponential;
+            options.Retry.Delay = TimeSpan.FromSeconds(3);
+            options.Retry.MaxRetries = 4;
+            options.Retry.NetworkTimeout = TimeSpan.FromMinutes(5);
 
-            client.DefaultRequestOptions = new BlobRequestOptions
+            if (_connectionString != null)
             {
-                RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), 4),
-                MaximumExecutionTime = TimeSpan.FromMinutes(5),
-                ParallelOperationThreadCount = 4,
-            };
+                return new BlobServiceClient(_connectionString, options);
+            }
 
-            return client;
+            return _sharedKeyCredential != null
+                ? new BlobServiceClient(ServiceUri("blob"), _sharedKeyCredential, options)
+                : new BlobServiceClient(ServiceUri("blob"), _sasCredential, options);
         }
 
-        public CloudQueueClient CreateQueueClient()
+        public QueueServiceClient CreateQueueClient()
         {
-            CloudQueueClient client = _account.CreateCloudQueueClient();
-
-            client.DefaultRequestOptions = new QueueRequestOptions
+            var options = new QueueClientOptions
             {
-                RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(2), 3),
+                MessageEncoding = QueueMessageEncoding.None,
             };
+            options.Retry.Mode = RetryMode.Fixed;
+            options.Retry.Delay = TimeSpan.FromSeconds(2);
+            options.Retry.MaxRetries = 3;
 
-            return client;
+            if (_connectionString != null)
+            {
+                return new QueueServiceClient(_connectionString, options);
+            }
+
+            return _sharedKeyCredential != null
+                ? new QueueServiceClient(ServiceUri("queue"), _sharedKeyCredential, options)
+                : new QueueServiceClient(ServiceUri("queue"), _sasCredential, options);
         }
 
-        public CloudTableClient CreateTableClient()
+        public TableServiceClient CreateTableClient()
         {
-            return _account.CreateCloudTableClient();
+            if (_connectionString != null)
+            {
+                return new TableServiceClient(_connectionString);
+            }
+
+            return _tableSharedKeyCredential != null
+                ? new TableServiceClient(ServiceUri("table"), _tableSharedKeyCredential)
+                : new TableServiceClient(ServiceUri("table"), _sasCredential);
         }
 
-        public CloudFileClient CreateFileClient()
+        public ShareServiceClient CreateFileClient()
         {
-            return _account.CreateCloudFileClient();
+            if (_connectionString != null)
+            {
+                return new ShareServiceClient(_connectionString);
+            }
+
+            return _sharedKeyCredential != null
+                ? new ShareServiceClient(ServiceUri("file"), _sharedKeyCredential)
+                : new ShareServiceClient(ServiceUri("file"), _sasCredential);
         }
 
         public Uri BlobEndpoint
         {
-            get { return _account.BlobEndpoint; }
+            get { return CreateBlobClient().Uri; }
+        }
+
+        private Uri ServiceUri(string service)
+        {
+            return new Uri($"https://{_accountName}.{service}.core.windows.net");
         }
     }
 }
