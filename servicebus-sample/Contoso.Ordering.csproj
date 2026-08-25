@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.2" />
     <PackageReference Include="WindowsAzure.ServiceBus" Version="6.2.1" />
   </ItemGroup>
 
