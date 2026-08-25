@@ -4,9 +4,9 @@ using System.Runtime.Serialization;
 namespace Contoso.Ordering
 {
     /// <summary>
-    /// Body of every message on the ordering queue. Modern messages use the shared JSON contract
-    /// in <see cref="OrderMessageContract"/>; the data contract annotations remain for legacy
-    /// <c>BrokeredMessage</c> interoperability during the side-by-side migration.
+    /// Body of every message on the ordering queue. Messages use the shared JSON contract in
+    /// <see cref="OrderMessageContract"/>; the data contract annotations preserve the established
+    /// serialized contract.
     /// </summary>
     [DataContract(Name = "Order", Namespace = "http://contoso.com/ordering")]
     public class OrderMessage
