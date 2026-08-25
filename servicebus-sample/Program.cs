@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
 namespace Contoso.Ordering
@@ -29,23 +30,24 @@ namespace Contoso.Ordering
             var topology = new TopologyManager(connectionString);
             await topology.EnsureTopologyAsync().ConfigureAwait(false);
 
+            await using (var serviceBusClient = new ServiceBusClient(connectionString))
+            await using (ServiceBusSender orderQueueSender =
+                serviceBusClient.CreateSender(TopologyManager.OrderQueuePath))
+            await using (ServiceBusSender shipmentTopicSender =
+                serviceBusClient.CreateSender(TopologyManager.ShipmentTopicPath))
             using (MessagingFactoryProvider provider =
-                MessagingFactoryProvider.FromConnectionString(connectionString))
+                   MessagingFactoryProvider.FromConnectionString(connectionString))
             {
-                QueueClient sendClient = provider.CreateQueueClient(TopologyManager.OrderQueuePath);
                 QueueClient receiveClient = provider.CreateQueueClient(
                     TopologyManager.OrderQueuePath,
                     ReceiveMode.PeekLock);
-
-                TopicClient topicClient =
-                    provider.CreateTopicClient(TopologyManager.ShipmentTopicPath);
 
                 SubscriptionClient subscriptionClient = provider.CreateSubscriptionClient(
                     TopologyManager.ShipmentTopicPath,
                     "expedited");
 
-                var sender = new OrderSender(sendClient);
-                var publisher = new ShipmentPublisher(topicClient);
+                var sender = new OrderSender(orderQueueSender);
+                var publisher = new ShipmentPublisher(shipmentTopicSender);
                 var subscriber = new ShipmentSubscriber(subscriptionClient);
 
                 var processor = new OrderProcessor(
@@ -75,8 +77,6 @@ namespace Contoso.Ordering
 
                 processor.Stop();
                 subscriber.Stop();
-                publisher.Close();
-                sender.Close();
             }
 
             return 0;

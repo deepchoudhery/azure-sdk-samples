@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
 namespace Contoso.Ordering
@@ -10,31 +11,23 @@ namespace Contoso.Ordering
     /// </summary>
     public class ShipmentPublisher
     {
-        private readonly TopicClient _topicClient;
+        private readonly ServiceBusSender _sender;
 
-        public ShipmentPublisher(TopicClient topicClient)
+        public ShipmentPublisher(ServiceBusSender sender)
         {
-            _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
+            _sender = sender ?? throw new ArgumentNullException(nameof(sender));
         }
 
         public async Task PublishAsync(OrderMessage order, string carrier)
         {
-            var message = new BrokeredMessage(order)
-            {
-                MessageId = $"{order.OrderId}:{carrier}",
-                Label = "shipment-ready",
-            };
+            ServiceBusMessage message = OrderMessageContract.CreateMessage(order);
+            message.MessageId = $"{order.OrderId}:{carrier}";
+            message.Subject = "shipment-ready";
+            message.ApplicationProperties["region"] = order.Region;
+            message.ApplicationProperties["carrier"] = carrier;
+            message.ApplicationProperties["expedited"] = order.Total > 500m;
 
-            message.Properties["region"] = order.Region;
-            message.Properties["carrier"] = carrier;
-            message.Properties["expedited"] = order.Total > 500m;
-
-            await _topicClient.SendAsync(message).ConfigureAwait(false);
-        }
-
-        public void Close()
-        {
-            _topicClient.Close();
+            await _sender.SendMessageAsync(message).ConfigureAwait(false);
         }
     }
 
