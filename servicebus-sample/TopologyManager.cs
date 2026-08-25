@@ -1,24 +1,22 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Messaging.ServiceBus.Administration;
 
 namespace Contoso.Ordering
 {
     /// <summary>
-    /// Creates the queue, topic, and subscriptions at startup. <see cref="NamespaceManager"/>
-    /// is the legacy management surface and lives in the same package as the data plane.
+    /// Creates the queue, topic, and subscriptions at startup.
     /// </summary>
     public class TopologyManager
     {
         public const string OrderQueuePath = "orders";
         public const string ShipmentTopicPath = "shipments";
 
-        private readonly NamespaceManager _namespaceManager;
+        private readonly ServiceBusAdministrationClient _administrationClient;
 
         public TopologyManager(string connectionString)
         {
-            _namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
+            _administrationClient = new ServiceBusAdministrationClient(connectionString);
         }
 
         public async Task EnsureTopologyAsync()
@@ -30,41 +28,41 @@ namespace Contoso.Ordering
 
         private async Task EnsureOrderQueueAsync()
         {
-            if (await _namespaceManager.QueueExistsAsync(OrderQueuePath).ConfigureAwait(false))
+            if ((await _administrationClient.QueueExistsAsync(OrderQueuePath).ConfigureAwait(false)).Value)
             {
                 return;
             }
 
-            var description = new QueueDescription(OrderQueuePath)
+            var options = new CreateQueueOptions(OrderQueuePath)
             {
                 MaxSizeInMegabytes = 5120,
-                DefaultMessageTimeToLive = TimeSpan.FromDays(7),
-                LockDuration = TimeSpan.FromMinutes(1),
+                DefaultMessageTimeToLive = TimeSpan.FromDays(7d),
+                LockDuration = TimeSpan.FromMinutes(1d),
                 MaxDeliveryCount = 5,
-                EnableDeadLetteringOnMessageExpiration = true,
+                DeadLetteringOnMessageExpiration = true,
                 RequiresDuplicateDetection = true,
-                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10),
+                DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(10d),
                 EnablePartitioning = false,
             };
 
-            await _namespaceManager.CreateQueueAsync(description).ConfigureAwait(false);
+            await _administrationClient.CreateQueueAsync(options).ConfigureAwait(false);
         }
 
         private async Task EnsureShipmentTopicAsync()
         {
-            if (await _namespaceManager.TopicExistsAsync(ShipmentTopicPath).ConfigureAwait(false))
+            if ((await _administrationClient.TopicExistsAsync(ShipmentTopicPath).ConfigureAwait(false)).Value)
             {
                 return;
             }
 
-            var description = new TopicDescription(ShipmentTopicPath)
+            var options = new CreateTopicOptions(ShipmentTopicPath)
             {
                 MaxSizeInMegabytes = 5120,
-                DefaultMessageTimeToLive = TimeSpan.FromDays(7),
+                DefaultMessageTimeToLive = TimeSpan.FromDays(7d),
                 EnableBatchedOperations = true,
             };
 
-            await _namespaceManager.CreateTopicAsync(description).ConfigureAwait(false);
+            await _administrationClient.CreateTopicAsync(options).ConfigureAwait(false);
         }
 
         private async Task EnsureSubscriptionsAsync()
@@ -76,53 +74,59 @@ namespace Contoso.Ordering
 
         private async Task EnsureSubscriptionAsync(string name, string sqlFilter)
         {
-            bool exists = await _namespaceManager
-                .SubscriptionExistsAsync(ShipmentTopicPath, name)
-                .ConfigureAwait(false);
+            bool exists = (await _administrationClient
+                    .SubscriptionExistsAsync(ShipmentTopicPath, name)
+                    .ConfigureAwait(false))
+                .Value;
 
             if (exists)
             {
                 return;
             }
 
-            var description = new SubscriptionDescription(ShipmentTopicPath, name)
+            var options = new CreateSubscriptionOptions(ShipmentTopicPath, name)
             {
-                LockDuration = TimeSpan.FromMinutes(1),
+                LockDuration = TimeSpan.FromMinutes(1d),
                 MaxDeliveryCount = 5,
-                EnableDeadLetteringOnMessageExpiration = true,
+                DeadLetteringOnMessageExpiration = true,
             };
 
             if (string.IsNullOrEmpty(sqlFilter))
             {
-                await _namespaceManager.CreateSubscriptionAsync(description).ConfigureAwait(false);
+                await _administrationClient.CreateSubscriptionAsync(options).ConfigureAwait(false);
             }
             else
             {
-                await _namespaceManager
-                    .CreateSubscriptionAsync(description, new SqlFilter(sqlFilter))
+                var rule = new CreateRuleOptions(
+                    CreateRuleOptions.DefaultRuleName,
+                    new SqlRuleFilter(sqlFilter));
+
+                await _administrationClient
+                    .CreateSubscriptionAsync(options, rule)
                     .ConfigureAwait(false);
             }
         }
 
         public async Task<long> GetQueueDepthAsync()
         {
-            QueueDescription description = await _namespaceManager
-                .GetQueueAsync(OrderQueuePath)
-                .ConfigureAwait(false);
+            QueueRuntimeProperties properties = (await _administrationClient
+                    .GetQueueRuntimePropertiesAsync(OrderQueuePath)
+                    .ConfigureAwait(false))
+                .Value;
 
-            return description.MessageCountDetails.ActiveMessageCount;
+            return properties.ActiveMessageCount;
         }
 
         public async Task DeleteTopologyAsync()
         {
-            if (await _namespaceManager.QueueExistsAsync(OrderQueuePath).ConfigureAwait(false))
+            if ((await _administrationClient.QueueExistsAsync(OrderQueuePath).ConfigureAwait(false)).Value)
             {
-                await _namespaceManager.DeleteQueueAsync(OrderQueuePath).ConfigureAwait(false);
+                await _administrationClient.DeleteQueueAsync(OrderQueuePath).ConfigureAwait(false);
             }
 
-            if (await _namespaceManager.TopicExistsAsync(ShipmentTopicPath).ConfigureAwait(false))
+            if ((await _administrationClient.TopicExistsAsync(ShipmentTopicPath).ConfigureAwait(false)).Value)
             {
-                await _namespaceManager.DeleteTopicAsync(ShipmentTopicPath).ConfigureAwait(false);
+                await _administrationClient.DeleteTopicAsync(ShipmentTopicPath).ConfigureAwait(false);
             }
         }
     }
