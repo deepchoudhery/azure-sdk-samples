@@ -1,0 +1,619 @@
+{
+  "packageGovernance": {
+    "totalDistinctPackages": 19,
+    "totalVersionDriftInstances": 0,
+    "targetFramework": "net10.0",
+    "packages": [
+      {
+        "name": "Azure.Core",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.60.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.60.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Azure.Core.Amqp",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.3.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.3.1",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Azure.Messaging.ServiceBus",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "7.20.2",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "7.20.2",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Azure.Amqp",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.7.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "2.7.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Bcl.AsyncInterfaces",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.Configuration.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.DependencyInjection.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.Diagnostics.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.FileProviders.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.Hosting.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.Logging.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.Options",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Identity.Client",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.84.2",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.84.2",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Identity.Client.Extensions.Msal",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.84.2",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.84.2",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.IdentityModel.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "8.14.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "8.14.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.ClientModel",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.14.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.14.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Memory.Data",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.9",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.ProtectedData",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.5.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.5.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      }
+    ]
+  },
+  "projects": [
+    {
+      "name": "Contoso.Ordering",
+      "path": "Contoso.Ordering.csproj",
+      "isSdk": true,
+      "currentFrameworks": [
+        "net472"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [
+          {
+            "name": "Azure.Core",
+            "version": "1.60.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core"
+            ]
+          },
+          {
+            "name": "Azure.Core.Amqp",
+            "version": "1.3.1",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core.Amqp"
+            ]
+          },
+          {
+            "name": "Azure.Messaging.ServiceBus",
+            "version": "7.20.2",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Azure.Amqp",
+            "version": "2.7.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Microsoft.Azure.Amqp"
+            ]
+          },
+          {
+            "name": "Microsoft.Bcl.AsyncInterfaces",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Bcl.AsyncInterfaces"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.Configuration.Abstractions",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Configuration.Abstractions"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.DependencyInjection.Abstractions",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Hosting.Abstractions \u003E Microsoft.Extensions.DependencyInjection.Abstractions"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.Diagnostics.Abstractions",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Hosting.Abstractions \u003E Microsoft.Extensions.Diagnostics.Abstractions"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.FileProviders.Abstractions",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Hosting.Abstractions \u003E Microsoft.Extensions.FileProviders.Abstractions"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.Hosting.Abstractions",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Hosting.Abstractions"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.Logging.Abstractions",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Hosting.Abstractions \u003E Microsoft.Extensions.Logging.Abstractions"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.Options",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Hosting.Abstractions \u003E Microsoft.Extensions.Diagnostics.Abstractions \u003E Microsoft.Extensions.Options"
+            ]
+          },
+          {
+            "name": "Microsoft.Extensions.Primitives",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Extensions.Configuration.Abstractions \u003E Microsoft.Extensions.Primitives"
+            ]
+          },
+          {
+            "name": "Microsoft.Identity.Client",
+            "version": "4.84.2",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Identity.Client"
+            ]
+          },
+          {
+            "name": "Microsoft.Identity.Client.Extensions.Msal",
+            "version": "4.84.2",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Identity.Client.Extensions.Msal"
+            ]
+          },
+          {
+            "name": "Microsoft.IdentityModel.Abstractions",
+            "version": "8.14.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Identity.Client \u003E Microsoft.IdentityModel.Abstractions"
+            ]
+          },
+          {
+            "name": "System.ClientModel",
+            "version": "1.14.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E System.ClientModel"
+            ]
+          },
+          {
+            "name": "System.Memory.Data",
+            "version": "10.0.9",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E System.Memory.Data"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.ProtectedData",
+            "version": "4.5.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "Azure.Messaging.ServiceBus \u003E Azure.Core \u003E Microsoft.Identity.Client.Extensions.Msal \u003E System.Security.Cryptography.ProtectedData"
+            ]
+          }
+        ],
+        "assemblies": [
+          {
+            "name": "System",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          }
+        ],
+        "projectReferences": [],
+        "frameworkReferences": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "scenarioId": "dotnet-version-upgrade",
+  "operationId": "945a3876-3876-44cf-bd5e-3c94a533051d",
+  "description": "Upgrade .NET projects to newer .NET versions, including guidance on current release status, support lifecycle (LTS/STS), and recommended upgrade targets.",
+  "startTime": "2026-08-25T22:55:43.0721772Z",
+  "lastUpdateTime": "2026-08-25T23:45:45.8497537Z",
+  "properties": {
+    "UpgradeTargetFramework": "net10.0",
+    "taskStates": {
+      "01-upgrade-contoso-ordering": "Completed",
+      "01-upgrade-contoso-ordering.01-message-contract-foundation": "Completed",
+      "01-upgrade-contoso-ordering.02-topology-management": "Completed",
+      "01-upgrade-contoso-ordering.03-outbound-messaging": "Completed",
+      "01-upgrade-contoso-ordering.04-inbound-processing": "Completed",
+      "01-upgrade-contoso-ordering.05-target-framework-cutover": "Completed",
+      "01-upgrade-contoso-ordering.06-clean-validation": "Completed"
+    }
+  },
+  "folderPath": ""
+}
