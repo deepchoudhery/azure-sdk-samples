@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
 
 namespace Contoso.Ordering
 {
@@ -34,58 +33,94 @@ namespace Contoso.Ordering
     /// <summary>
     /// Consumes one subscription of the shipments topic.
     /// </summary>
-    public class ShipmentSubscriber
+    public sealed class ShipmentSubscriber : IAsyncDisposable
     {
-        private readonly SubscriptionClient _subscriptionClient;
+        private readonly ServiceBusProcessor _processor;
+        private Func<OrderMessage, string, Task> _onShipment;
 
-        public ShipmentSubscriber(SubscriptionClient subscriptionClient)
+        public ShipmentSubscriber(
+            ServiceBusClient serviceBusClient,
+            string topicName,
+            string subscriptionName)
         {
-            _subscriptionClient = subscriptionClient
-                ?? throw new ArgumentNullException(nameof(subscriptionClient));
+            if (serviceBusClient == null)
+            {
+                throw new ArgumentNullException(nameof(serviceBusClient));
+            }
+
+            if (string.IsNullOrWhiteSpace(topicName))
+            {
+                throw new ArgumentException("A topic name is required.", nameof(topicName));
+            }
+
+            if (string.IsNullOrWhiteSpace(subscriptionName))
+            {
+                throw new ArgumentException(
+                    "A subscription name is required.",
+                    nameof(subscriptionName));
+            }
+
+            _processor = serviceBusClient.CreateProcessor(
+                topicName,
+                subscriptionName,
+                new ServiceBusProcessorOptions
+                {
+                    AutoCompleteMessages = false,
+                    MaxConcurrentCalls = 2,
+                    MaxAutoLockRenewalDuration = TimeSpan.FromMinutes(5d),
+                    ReceiveMode = ServiceBusReceiveMode.PeekLock,
+                });
+
+            _processor.ProcessMessageAsync += ProcessMessageAsync;
+            _processor.ProcessErrorAsync += ProcessErrorAsync;
         }
 
-        public void Start(Func<OrderMessage, string, Task> onShipment)
+        public async Task StartAsync(Func<OrderMessage, string, Task> onShipment)
         {
-            var options = new OnMessageOptions
-            {
-                AutoComplete = false,
-                MaxConcurrentCalls = 2,
-            };
-
-            options.ExceptionReceived += (sender, e) =>
-            {
-                if (e.Exception != null)
-                {
-                    Console.Error.WriteLine($"Subscription error: {e.Exception.Message}");
-                }
-            };
-
-            _subscriptionClient.OnMessageAsync(
-                async message =>
-                {
-                    OrderMessage order = message.GetBody<OrderMessage>();
-
-                    object carrier;
-                    message.Properties.TryGetValue("carrier", out carrier);
-
-                    try
-                    {
-                        await onShipment(order, carrier as string).ConfigureAwait(false);
-                        await message.CompleteAsync().ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        await message
-                            .DeadLetterAsync("ShipmentHandlerFailed", ex.Message)
-                            .ConfigureAwait(false);
-                    }
-                },
-                options);
+            _onShipment = onShipment ?? throw new ArgumentNullException(nameof(onShipment));
+            await _processor.StartProcessingAsync().ConfigureAwait(false);
         }
 
-        public void Stop()
+        public async Task StopAsync()
         {
-            _subscriptionClient.Close();
+            if (_processor.IsProcessing)
+            {
+                await _processor.StopProcessingAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await StopAsync().ConfigureAwait(false);
+            await _processor.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
+        {
+            OrderMessage order = OrderMessageContract.Read(args.Message);
+
+            object carrier;
+            args.Message.ApplicationProperties.TryGetValue("carrier", out carrier);
+
+            try
+            {
+                await _onShipment(order, carrier as string).ConfigureAwait(false);
+                await args.CompleteMessageAsync(args.Message).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await args
+                    .DeadLetterMessageAsync(args.Message, "ShipmentHandlerFailed", ex.Message)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private static Task ProcessErrorAsync(ProcessErrorEventArgs args)
+        {
+            Console.Error.WriteLine(
+                $"Subscription error during {args.ErrorSource} on {args.EntityPath}: " +
+                args.Exception.Message);
+            return Task.CompletedTask;
         }
     }
 }

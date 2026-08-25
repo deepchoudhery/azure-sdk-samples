@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
 
 namespace Contoso.Ordering
 {
@@ -35,48 +34,54 @@ namespace Contoso.Ordering
                 serviceBusClient.CreateSender(TopologyManager.OrderQueuePath))
             await using (ServiceBusSender shipmentTopicSender =
                 serviceBusClient.CreateSender(TopologyManager.ShipmentTopicPath))
-            using (MessagingFactoryProvider provider =
-                   MessagingFactoryProvider.FromConnectionString(connectionString))
+            await using (var subscriber = new ShipmentSubscriber(
+                serviceBusClient,
+                TopologyManager.ShipmentTopicPath,
+                "expedited"))
+            await using (var processor = new OrderProcessor(
+                serviceBusClient,
+                TopologyManager.OrderQueuePath,
+                order => Console.WriteLine($"Processed {order}")))
             {
-                QueueClient receiveClient = provider.CreateQueueClient(
-                    TopologyManager.OrderQueuePath,
-                    ReceiveMode.PeekLock);
-
-                SubscriptionClient subscriptionClient = provider.CreateSubscriptionClient(
-                    TopologyManager.ShipmentTopicPath,
-                    "expedited");
-
                 var sender = new OrderSender(orderQueueSender);
                 var publisher = new ShipmentPublisher(shipmentTopicSender);
-                var subscriber = new ShipmentSubscriber(subscriptionClient);
 
-                var processor = new OrderProcessor(
-                    receiveClient,
-                    order => Console.WriteLine($"Processed {order}"));
+                await subscriber
+                    .StartAsync((order, carrier) =>
+                    {
+                        Console.WriteLine($"Shipping {order.OrderId} via {carrier}.");
+                        return Task.FromResult(0);
+                    })
+                    .ConfigureAwait(false);
 
-                subscriber.Start((order, carrier) =>
+                await processor.StartAsync().ConfigureAwait(false);
+
+                try
                 {
-                    Console.WriteLine($"Shipping {order.OrderId} via {carrier}.");
-                    return Task.FromResult(0);
-                });
+                    await sender.SendBatchAsync(BuildSampleOrders()).ConfigureAwait(false);
 
-                processor.Start();
+                    await sender
+                        .ScheduleAsync(
+                            BuildOrder("ORD-999", "west", 42m),
+                            DateTime.UtcNow.AddMinutes(5))
+                        .ConfigureAwait(false);
 
-                await sender.SendBatchAsync(BuildSampleOrders()).ConfigureAwait(false);
+                    await publisher
+                        .PublishAsync(
+                            BuildOrder("ORD-1000", "east", 1200m),
+                            "fabrikam-air")
+                        .ConfigureAwait(false);
 
-                await sender
-                    .ScheduleAsync(BuildOrder("ORD-999", "west", 42m), DateTime.UtcNow.AddMinutes(5))
-                    .ConfigureAwait(false);
-
-                await publisher.PublishAsync(BuildOrder("ORD-1000", "east", 1200m), "fabrikam-air")
-                    .ConfigureAwait(false);
-
-                Console.WriteLine($"Queue depth: {await topology.GetQueueDepthAsync().ConfigureAwait(false)}");
-                Console.WriteLine("Press ENTER to stop.");
-                Console.ReadLine();
-
-                processor.Stop();
-                subscriber.Stop();
+                    Console.WriteLine(
+                        $"Queue depth: {await topology.GetQueueDepthAsync().ConfigureAwait(false)}");
+                    Console.WriteLine("Press ENTER to stop.");
+                    Console.ReadLine();
+                }
+                finally
+                {
+                    await processor.StopAsync().ConfigureAwait(false);
+                    await subscriber.StopAsync().ConfigureAwait(false);
+                }
             }
 
             return 0;
