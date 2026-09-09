@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.Sas;
 
 namespace Contoso.Documents
 {
@@ -13,106 +18,152 @@ namespace Contoso.Documents
     /// </summary>
     public class BlobRepository
     {
-        private readonly CloudBlobContainer _container;
+        private static readonly TimeSpan MaximumExecutionTime = TimeSpan.FromMinutes(5);
 
-        public BlobRepository(CloudBlobClient client, string containerName)
+        private readonly BlobContainerClient _container;
+
+        public BlobRepository(BlobServiceClient client, string containerName)
         {
-            _container = client.GetContainerReference(containerName);
+            _container = client.GetBlobContainerClient(containerName);
         }
 
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
-            await _container.CreateIfNotExistsAsync().ConfigureAwait(false);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
 
             await _container
-                .SetPermissionsAsync(new BlobContainerPermissions
-                {
-                    PublicAccess = BlobContainerPublicAccessType.Off,
-                })
+                .CreateIfNotExistsAsync(cancellationToken: operation.Token)
+                .ConfigureAwait(false);
+
+            await _container
+                .SetAccessPolicyAsync(
+                    PublicAccessType.None,
+                    cancellationToken: operation.Token)
                 .ConfigureAwait(false);
         }
 
-        public async Task UploadAsync(string blobName, Stream content, string contentType)
+        public async Task UploadAsync(
+            string blobName,
+            Stream content,
+            string contentType,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient blob = _container.GetBlobClient(blobName);
 
-            blob.Properties.ContentType = contentType;
-            blob.Metadata["uploaded-by"] = "contoso-documents";
-            blob.Metadata["uploaded-on"] = DateTime.UtcNow.ToString("O");
-
-            await blob.UploadFromStreamAsync(content).ConfigureAwait(false);
-            await blob.SetMetadataAsync().ConfigureAwait(false);
+            await blob.UploadAsync(
+                    content,
+                    new BlobUploadOptions
+                    {
+                        HttpHeaders = new BlobHttpHeaders { ContentType = contentType },
+                        Metadata = new Dictionary<string, string>
+                        {
+                            ["uploaded-by"] = "contoso-documents",
+                            ["uploaded-on"] = DateTime.UtcNow.ToString("O"),
+                        },
+                        TransferOptions = new Azure.Storage.StorageTransferOptions
+                        {
+                            MaximumConcurrency = 4,
+                        },
+                    },
+                    operation.Token)
+                .ConfigureAwait(false);
         }
 
-        public async Task UploadTextAsync(string blobName, string text)
+        public async Task UploadTextAsync(
+            string blobName,
+            string text,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            await blob.UploadTextAsync(text).ConfigureAwait(false);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient blob = _container.GetBlobClient(blobName);
+            await blob
+                .UploadAsync(
+                    BinaryData.FromString(text),
+                    overwrite: true,
+                    operation.Token)
+                .ConfigureAwait(false);
         }
 
-        public async Task<Stream> DownloadAsync(string blobName)
+        public async Task<Stream> DownloadAsync(
+            string blobName,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient blob = _container.GetBlobClient(blobName);
 
             var buffer = new MemoryStream();
-            await blob.DownloadToStreamAsync(buffer).ConfigureAwait(false);
+            await blob.DownloadToAsync(buffer, operation.Token).ConfigureAwait(false);
             buffer.Position = 0;
 
             return buffer;
         }
 
-        public async Task<string> DownloadTextAsync(string blobName)
+        public async Task<string> DownloadTextAsync(
+            string blobName,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            return await blob.DownloadTextAsync().ConfigureAwait(false);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient blob = _container.GetBlobClient(blobName);
+            BlobDownloadResult result = await blob
+                .DownloadContentAsync(operation.Token)
+                .ConfigureAwait(false);
+            return result.Content.ToString();
         }
 
-        public async Task<bool> ExistsAsync(string blobName)
+        public async Task<bool> ExistsAsync(
+            string blobName,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            return await blob.ExistsAsync().ConfigureAwait(false);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient blob = _container.GetBlobClient(blobName);
+            return (await blob.ExistsAsync(operation.Token).ConfigureAwait(false)).Value;
         }
 
-        public async Task<bool> DeleteAsync(string blobName)
+        public async Task<bool> DeleteAsync(
+            string blobName,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            return await blob.DeleteIfExistsAsync().ConfigureAwait(false);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient blob = _container.GetBlobClient(blobName);
+            return (await blob
+                .DeleteIfExistsAsync(cancellationToken: operation.Token)
+                .ConfigureAwait(false)).Value;
         }
 
         /// <summary>
-        /// Segmented listing. Every legacy listing loop looks like this: an opaque
-        /// continuation token threaded through a do/while.
+        /// Asynchronously lists every matching blob while retaining the legacy page-size hint.
         /// </summary>
-        public async Task<IReadOnlyList<string>> ListAsync(string prefix)
+        public async Task<IReadOnlyList<string>> ListAsync(
+            string prefix,
+            CancellationToken cancellationToken = default)
         {
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
             var names = new List<string>();
-            BlobContinuationToken token = null;
-
-            do
+            await foreach (Page<BlobItem> page in _container
+                .GetBlobsAsync(
+                    BlobTraits.Metadata,
+                    BlobStates.None,
+                    prefix,
+                    operation.Token)
+                .AsPages(pageSizeHint: 100))
             {
-                BlobResultSegment segment = await _container
-                    .ListBlobsSegmentedAsync(
-                        prefix,
-                        useFlatBlobListing: true,
-                        blobListingDetails: BlobListingDetails.Metadata,
-                        maxResults: 100,
-                        currentToken: token,
-                        options: null,
-                        operationContext: null)
-                    .ConfigureAwait(false);
-
-                foreach (IListBlobItem item in segment.Results)
+                foreach (BlobItem item in page.Values)
                 {
-                    var blob = item as CloudBlockBlob;
-                    if (blob != null)
+                    if (item.Properties.BlobType == BlobType.Block)
                     {
-                        names.Add(blob.Name);
+                        names.Add(item.Name);
                     }
                 }
-
-                token = segment.ContinuationToken;
             }
-            while (token != null);
 
             return names;
         }
@@ -120,28 +171,41 @@ namespace Contoso.Documents
         /// <summary>
         /// Appends a line to the customer's audit blob, creating it on first use.
         /// </summary>
-        public async Task AppendAuditLineAsync(string customerId, string line)
+        public async Task AppendAuditLineAsync(
+            string customerId,
+            string line,
+            CancellationToken cancellationToken = default)
         {
-            CloudAppendBlob blob = _container.GetAppendBlobReference($"audit/{customerId}.log");
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            AppendBlobClient blob = _container.GetAppendBlobClient($"audit/{customerId}.log");
+            await blob
+                .CreateIfNotExistsAsync(cancellationToken: operation.Token)
+                .ConfigureAwait(false);
 
-            if (!await blob.ExistsAsync().ConfigureAwait(false))
-            {
-                await blob.CreateOrReplaceAsync().ConfigureAwait(false);
-            }
-
-            await blob.AppendTextAsync($"{DateTime.UtcNow:O} {line}{Environment.NewLine}")
+            byte[] content = Encoding.UTF8.GetBytes(
+                $"{DateTime.UtcNow:O} {line}{Environment.NewLine}");
+            using var stream = new MemoryStream(content, writable: false);
+            await blob.AppendBlockAsync(stream, cancellationToken: operation.Token)
                 .ConfigureAwait(false);
         }
 
         /// <summary>
         /// Server-side copy between two blobs in the same container.
         /// </summary>
-        public async Task CopyAsync(string sourceName, string destinationName)
+        public async Task CopyAsync(
+            string sourceName,
+            string destinationName,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob source = _container.GetBlockBlobReference(sourceName);
-            CloudBlockBlob destination = _container.GetBlockBlobReference(destinationName);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient source = _container.GetBlobClient(sourceName);
+            BlobClient destination = _container.GetBlobClient(destinationName);
 
-            await destination.StartCopyAsync(source).ConfigureAwait(false);
+            await destination
+                .StartCopyFromUriAsync(source.Uri, cancellationToken: operation.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -149,38 +213,60 @@ namespace Contoso.Documents
         /// </summary>
         public string GetReadSasUri(string blobName, TimeSpan lifetime)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-
-            var policy = new SharedAccessBlobPolicy
+            BlobClient blob = _container.GetBlobClient(blobName);
+            var sas = new BlobSasBuilder
             {
-                Permissions = SharedAccessBlobPermissions.Read,
-                SharedAccessStartTime = DateTimeOffset.UtcNow.AddMinutes(-5),
-                SharedAccessExpiryTime = DateTimeOffset.UtcNow.Add(lifetime),
+                BlobContainerName = _container.Name,
+                BlobName = blobName,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                ExpiresOn = DateTimeOffset.UtcNow.Add(lifetime),
             };
+            sas.SetPermissions(BlobSasPermissions.Read);
 
-            string sas = blob.GetSharedAccessSignature(policy);
-            return blob.Uri + sas;
+            return blob.GenerateSasUri(sas).ToString();
         }
 
         /// <summary>
-        /// Optimistic concurrency using the legacy <see cref="AccessCondition"/> type.
+        /// Optimistic concurrency using an If-Match ETag condition.
         /// </summary>
-        public async Task<bool> TryUpdateIfUnchangedAsync(string blobName, string text, string etag)
+        public async Task<bool> TryUpdateIfUnchangedAsync(
+            string blobName,
+            string text,
+            string etag,
+            CancellationToken cancellationToken = default)
         {
-            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
+            using CancellationTokenSource operation =
+                CreateOperationCancellation(cancellationToken);
+            BlobClient blob = _container.GetBlobClient(blobName);
 
             try
             {
                 await blob
-                    .UploadTextAsync(text, null, AccessCondition.GenerateIfMatchCondition(etag), null, null)
+                    .UploadAsync(
+                        BinaryData.FromString(text),
+                        new BlobUploadOptions
+                        {
+                            Conditions = new BlobRequestConditions { IfMatch = new ETag(etag) },
+                        },
+                        operation.Token)
                     .ConfigureAwait(false);
 
                 return true;
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == 412)
+            catch (RequestFailedException ex) when (ex.Status == 412)
             {
                 return false;
             }
+        }
+
+        private static CancellationTokenSource CreateOperationCancellation(
+            CancellationToken cancellationToken)
+        {
+            CancellationTokenSource operation =
+                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            operation.CancelAfter(MaximumExecutionTime);
+            return operation;
         }
     }
 }

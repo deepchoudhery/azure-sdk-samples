@@ -1,30 +1,43 @@
 using System;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.File;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure;
+using Azure.Core;
+using Azure.Data.Tables;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Files.Shares;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 
 namespace Contoso.Documents
 {
     /// <summary>
-    /// Single entry point for every storage service. <see cref="CloudStorageAccount"/> is the
-    /// legacy façade that hands out per-service clients.
+    /// Single entry point for every storage service.
     /// </summary>
     public class StorageAccountFactory
     {
-        private readonly CloudStorageAccount _account;
+        private readonly BlobServiceClient _blobClient;
+        private readonly QueueServiceClient _queueClient;
+        private readonly TableServiceClient _tableClient;
+        private readonly ShareServiceClient _fileClient;
 
         public StorageAccountFactory(string connectionString)
         {
-            _account = CloudStorageAccount.Parse(connectionString);
+            _blobClient = new BlobServiceClient(connectionString, CreateBlobOptions());
+            _queueClient = new QueueServiceClient(connectionString, CreateQueueOptions());
+            _tableClient = new TableServiceClient(connectionString);
+            _fileClient = new ShareServiceClient(connectionString);
         }
 
-        private StorageAccountFactory(CloudStorageAccount account)
+        private StorageAccountFactory(
+            BlobServiceClient blobClient,
+            QueueServiceClient queueClient,
+            TableServiceClient tableClient,
+            ShareServiceClient fileClient)
         {
-            _account = account;
+            _blobClient = blobClient;
+            _queueClient = queueClient;
+            _tableClient = tableClient;
+            _fileClient = fileClient;
         }
 
         /// <summary>
@@ -32,16 +45,16 @@ namespace Contoso.Documents
         /// </summary>
         public static bool TryCreate(string connectionString, out StorageAccountFactory factory)
         {
-            CloudStorageAccount account;
-
-            if (CloudStorageAccount.TryParse(connectionString, out account))
+            try
             {
-                factory = new StorageAccountFactory(account);
+                factory = new StorageAccountFactory(connectionString);
                 return true;
             }
-
-            factory = null;
-            return false;
+            catch (Exception ex) when (ex is ArgumentException || ex is FormatException)
+            {
+                factory = null;
+                return false;
+            }
         }
 
         /// <summary>
@@ -50,10 +63,14 @@ namespace Contoso.Documents
         /// </summary>
         public static StorageAccountFactory FromSharedKey(string accountName, string accountKey)
         {
-            var credentials = new StorageCredentials(accountName, accountKey);
-            var account = new CloudStorageAccount(credentials, useHttps: true);
+            var storageCredential = new StorageSharedKeyCredential(accountName, accountKey);
+            var tableCredential = new TableSharedKeyCredential(accountName, accountKey);
 
-            return new StorageAccountFactory(account);
+            return new StorageAccountFactory(
+                new BlobServiceClient(CreateServiceUri(accountName, "blob"), storageCredential, CreateBlobOptions()),
+                new QueueServiceClient(CreateServiceUri(accountName, "queue"), storageCredential, CreateQueueOptions()),
+                new TableServiceClient(CreateServiceUri(accountName, "table"), tableCredential),
+                new ShareServiceClient(CreateServiceUri(accountName, "file"), storageCredential));
         }
 
         /// <summary>
@@ -61,51 +78,66 @@ namespace Contoso.Documents
         /// </summary>
         public static StorageAccountFactory FromSasToken(string accountName, string sasToken)
         {
-            var credentials = new StorageCredentials(sasToken);
-            var account = new CloudStorageAccount(credentials, accountName, endpointSuffix: null, useHttps: true);
+            var credential = new AzureSasCredential(sasToken?.TrimStart('?'));
 
-            return new StorageAccountFactory(account);
+            return new StorageAccountFactory(
+                new BlobServiceClient(CreateServiceUri(accountName, "blob"), credential, CreateBlobOptions()),
+                new QueueServiceClient(CreateServiceUri(accountName, "queue"), credential, CreateQueueOptions()),
+                new TableServiceClient(CreateServiceUri(accountName, "table"), credential),
+                new ShareServiceClient(CreateServiceUri(accountName, "file"), credential));
         }
 
-        public CloudBlobClient CreateBlobClient()
+        public BlobServiceClient CreateBlobClient()
         {
-            CloudBlobClient client = _account.CreateCloudBlobClient();
-
-            client.DefaultRequestOptions = new BlobRequestOptions
-            {
-                RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), 4),
-                MaximumExecutionTime = TimeSpan.FromMinutes(5),
-                ParallelOperationThreadCount = 4,
-            };
-
-            return client;
+            return _blobClient;
         }
 
-        public CloudQueueClient CreateQueueClient()
+        public QueueServiceClient CreateQueueClient()
         {
-            CloudQueueClient client = _account.CreateCloudQueueClient();
-
-            client.DefaultRequestOptions = new QueueRequestOptions
-            {
-                RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(2), 3),
-            };
-
-            return client;
+            return _queueClient;
         }
 
-        public CloudTableClient CreateTableClient()
+        public TableServiceClient CreateTableClient()
         {
-            return _account.CreateCloudTableClient();
+            return _tableClient;
         }
 
-        public CloudFileClient CreateFileClient()
+        public ShareServiceClient CreateFileClient()
         {
-            return _account.CreateCloudFileClient();
+            return _fileClient;
         }
 
         public Uri BlobEndpoint
         {
-            get { return _account.BlobEndpoint; }
+            get { return _blobClient.Uri; }
+        }
+
+        private static BlobClientOptions CreateBlobOptions()
+        {
+            var options = new BlobClientOptions();
+            options.Retry.Mode = RetryMode.Exponential;
+            options.Retry.Delay = TimeSpan.FromSeconds(3);
+            options.Retry.MaxRetries = 4;
+            options.Retry.NetworkTimeout = TimeSpan.FromMinutes(5);
+            return options;
+        }
+
+        private static QueueClientOptions CreateQueueOptions()
+        {
+            var options = new QueueClientOptions
+            {
+                MessageEncoding = QueueMessageEncoding.Base64,
+            };
+
+            options.Retry.Mode = RetryMode.Fixed;
+            options.Retry.Delay = TimeSpan.FromSeconds(2);
+            options.Retry.MaxRetries = 3;
+            return options;
+        }
+
+        private static Uri CreateServiceUri(string accountName, string service)
+        {
+            return new Uri($"https://{accountName}.{service}.core.windows.net");
         }
     }
 }

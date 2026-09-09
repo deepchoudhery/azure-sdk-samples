@@ -1,98 +1,90 @@
-# Storage sample — `migrating-azure-storage`
+# Storage sample
 
-A document-management console app that uses **all four** legacy storage services: block and
-append blobs for document bodies, a queue for the ingestion pipeline, a table for the metadata
-index, and a file share for partner drops. It is stuck on the retired `WindowsAzure.Storage`
-package.
+This .NET 10 console application demonstrates the supported Track 2 Azure SDK clients for the four
+Azure Storage data services used by the original sample:
 
-- **TFM:** `net8.0`
-- **Deprecated package:** `WindowsAzure.Storage`
-- **Baseline:** `dotnet build` succeeds with 0 warnings, 0 errors.
+- `Azure.Storage.Blobs` for block blobs, append blobs, metadata, SAS generation, copy, and ETag
+  concurrency.
+- `Azure.Storage.Queues` for enqueue, receive, delete, visibility renewal, peek, and queue
+  properties.
+- `Azure.Data.Tables` for typed and dynamic entities, queries, ETags, upserts, and transactions.
+- `Azure.Storage.Files.Shares` for shares, directories, file transfer, listing, and quota.
 
-Using all four services is deliberate: the skill says to add "only the packages the project
-actually needs", and here that means all four. A sample that only used blobs would not test
-whether the agent scopes packages correctly.
+The project targets `net10.0`. Its migration was implemented and reviewed using the installed
+`migrating-azure-sdk-to-track2` skill, including its Track 2 contract, package catalog,
+authentication, and behavior-audit guidance.
 
-## What each file exercises
+## Track 2 API shape
 
-| File | Legacy surface under test |
-|------|---------------------------|
-| `StorageAccountFactory.cs` | `CloudStorageAccount.Parse` / `TryParse`, `StorageCredentials` (shared key **and** SAS), `CreateCloudBlobClient` / `CreateCloudQueueClient` / `CreateCloudTableClient` / `CreateCloudFileClient`, `BlobRequestOptions`, `QueueRequestOptions`, `ExponentialRetry`, `LinearRetry` |
-| `BlobRepository.cs` | `CloudBlobContainer`, `CloudBlockBlob`, `CloudAppendBlob`, `UploadFromStreamAsync`, `DownloadToStreamAsync`, `UploadTextAsync`, `DownloadTextAsync`, `ExistsAsync`, `DeleteIfExistsAsync`, metadata, `ListBlobsSegmentedAsync` + `BlobContinuationToken`, `StartCopyAsync`, `GetSharedAccessSignature`, `AccessCondition`, `StorageException` 412 |
-| `QueueRepository.cs` | `CloudQueue`, `CloudQueueMessage`, `AddMessageAsync` (plain and with TTL/visibility), `GetMessageAsync`, `GetMessagesAsync`, `DeleteMessageAsync` (both overloads), `UpdateMessageAsync` + `MessageUpdateFields`, `PeekMessageAsync`, `FetchAttributesAsync` + `ApproximateMessageCount`, `ClearAsync` |
-| `TableRepository.cs` | `CloudTable`, `TableOperation.Insert` / `InsertOrReplace` / `InsertOrMerge` / `Retrieve<T>` / `Delete` / `Replace`, `TableResult`, `TableQuery` + `GenerateFilterCondition` + `CombineFilters`, `ExecuteQuerySegmentedAsync` + `TableContinuationToken`, `DynamicTableEntity` + `EntityProperty`, `TableBatchOperation`, `StorageException` 412 |
-| `FileShareRepository.cs` | `CloudFileShare`, `CloudFileDirectory`, `CloudFile`, `ListFilesAndDirectoriesSegmentedAsync` + `FileContinuationToken`, `FetchAttributesAsync` + share quota |
-| `DocumentEntity.cs` | `TableEntity` base class with reflection-serialized properties |
+The retired `WindowsAzure.Storage` 9.3.3 account façade and service-specific `Cloud*` types were
+replaced with service clients:
 
-## Expected migration outcome
+| Legacy public SDK type | Track 2 public SDK type |
+|---|---|
+| `CloudStorageAccount` | Per-service clients held by `StorageAccountFactory` |
+| `CloudBlobClient` / `CloudBlobContainer` | `BlobServiceClient` / `BlobContainerClient` |
+| `CloudBlockBlob` / `CloudAppendBlob` | `BlobClient` / `AppendBlobClient` |
+| `CloudQueueClient` / `CloudQueueMessage` | `QueueServiceClient` / `QueueMessage` |
+| `CloudTableClient` / `CloudTable` / `TableEntity` | `TableServiceClient` / `TableClient` / `ITableEntity` |
+| `CloudFileClient` / `CloudFileShare` / `CloudFile` | `ShareServiceClient` / `ShareClient` / `ShareFileClient` |
+| `StorageException` | `RequestFailedException` |
 
-### Packages
+The factory still supports connection strings, shared keys, and SAS tokens. It deliberately does
+not switch authentication to a different principal as part of the SDK migration.
 
-- [ ] `WindowsAzure.Storage` is removed.
-- [ ] `Azure.Storage.Blobs`, `Azure.Storage.Queues`, `Azure.Storage.Files.Shares`, and `Azure.Data.Tables` are all added. Note that tables come from `Azure.Data.Tables`, **not** `Azure.Storage.Tables` (which does not exist).
-- [ ] The `NU1902;NU1903` suppression is no longer needed and should be dropped.
+Some wrapper signatures necessarily changed with the public SDK models. For example,
+`QueueRepository.RenewLeaseAsync` now returns a `QueueMessage` because
+`QueueClient.UpdateMessageAsync` returns an `UpdateReceipt` containing a refreshed pop receipt.
+The method applies that receipt with `message.Update(receipt)`; callers must use the returned message
+for a later update or delete rather than keeping the stale receipt. Blob repository asynchronous
+methods also accept an optional `CancellationToken` so caller cancellation can be combined with the
+legacy operation deadline.
 
-### Account initialization
+## Preserved behavior
 
-- [ ] `CloudStorageAccount` is gone entirely. `StorageAccountFactory` now holds either a connection string or per-service clients.
-- [ ] `TryParse` has no direct equivalent. The migration must keep the "invalid connection string does not throw" behavior — for example by catching `FormatException` / `ArgumentException` around client construction. Silently converting it to a throwing `Parse` changes `Program.Main`'s contract.
-- [ ] `StorageCredentials(accountName, accountKey)` → `StorageSharedKeyCredential`.
-- [ ] `StorageCredentials(sasToken)` → `AzureSasCredential` (or a SAS-bearing service URI).
-- [ ] `ExponentialRetry` / `LinearRetry` → `BlobClientOptions.Retry` with `RetryMode.Exponential` / `RetryMode.Fixed`; `MaximumExecutionTime` → `Retry.NetworkTimeout`.
+### Blob listing and deadlines
 
-### Blobs
+`BlobRepository.ListAsync` preserves the original flat prefix search and 100-item page-size hint,
+enumerates every asynchronous page, and returns only items whose
+`BlobItem.Properties.BlobType == BlobType.Block`. Append and page blobs are not included.
 
-- [ ] `CloudBlobClient` → `BlobServiceClient`; `CloudBlobContainer` → `BlobContainerClient`; `CloudBlockBlob` → `BlobClient` (or `BlockBlobClient`); `CloudAppendBlob` → `AppendBlobClient`.
-- [ ] `UploadFromStreamAsync` → `UploadAsync`; `DownloadToStreamAsync` → `DownloadToAsync`.
-- [ ] Setting `blob.Properties.ContentType` plus `blob.Metadata[...]` before upload becomes `BlobUploadOptions { HttpHeaders = new BlobHttpHeaders { ContentType = ... }, Metadata = ... }` passed to `UploadAsync`. The separate `SetMetadataAsync` follow-up call can then be dropped — but dropping it *without* moving the metadata into the upload loses data.
-- [ ] `UploadTextAsync` / `DownloadTextAsync` have no direct equivalent. Expect `UploadAsync(BinaryData.FromString(text))` and `DownloadContentAsync()` + `.Content.ToString()`.
-- [ ] The `ListBlobsSegmentedAsync` do/while loop becomes `await foreach (BlobItem item in container.GetBlobsAsync(BlobTraits.Metadata, prefix: prefix))`. A migration that preserves a manual continuation-token loop has not really migrated.
-- [ ] `StartCopyAsync(source)` → `StartCopyFromUriAsync(source.Uri)`.
-- [ ] `GetSharedAccessSignature(policy)` → `GenerateSasUri(BlobSasPermissions.Read, expiresOn)`. This requires the client to have been built with a `StorageSharedKeyCredential`, so watch for a client built from a token credential here — it throws at runtime, not compile time.
-- [ ] `AccessCondition.GenerateIfMatchCondition(etag)` → `BlobRequestConditions { IfMatch = new ETag(etag) }`.
-- [ ] `catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == 412)` → `catch (RequestFailedException ex) when (ex.Status == 412)`. There are **two** of these (blob and table).
+The old `BlobRequestOptions.MaximumExecutionTime` was a client-side limit for one complete API call,
+including all REST requests and retries. Track 2 `Retry.NetworkTimeout` instead limits an individual
+network operation and is not equivalent. Each asynchronous `BlobRepository` operation therefore
+creates one linked cancellation source, applies a five-minute deadline to the complete logical
+operation, and passes its token through all requests and listing pages. Azure.Core retry settings
+remain enabled, caller cancellation is retained, upload transfer concurrency remains four, and the
+`IfMatch` ETag/HTTP 412 behavior is unchanged.
 
-### Queues
+### Queue message encoding
 
-- [ ] `CloudQueueClient` → `QueueServiceClient`; `CloudQueue` → `QueueClient`.
-- [ ] `AddMessageAsync(new CloudQueueMessage(text))` → `SendMessageAsync(text)`.
-- [ ] `AddMessageAsync(message, ttl, delay, null, null)` → `SendMessageAsync(text, visibilityTimeout: delay, timeToLive: ttl)`. Argument order changes — a positional mistranslation here silently swaps TTL and delay.
-- [ ] `GetMessageAsync` → `ReceiveMessageAsync`; `GetMessagesAsync(n, ...)` → `ReceiveMessagesAsync(n, ...)`.
-- [ ] `DeleteMessageAsync(message)` → `DeleteMessageAsync(message.MessageId, message.PopReceipt)`.
-- [ ] `UpdateMessageAsync(message, extension, MessageUpdateFields.Visibility)` → `UpdateMessageAsync(messageId, popReceipt, visibilityTimeout: extension)`.
-- [ ] `FetchAttributesAsync()` + `ApproximateMessageCount` → `GetPropertiesAsync()` → `.Value.ApproximateMessagesCount`.
-- [ ] **Message encoding.** The new `QueueClient` base64-encodes by default while the old SDK did not. Because this app interoperates with existing queue data, the migration should either set `MessageEncoding = QueueMessageEncoding.None` or explicitly note the behavior change. Missing this is a silent runtime data bug and is the highest-value failure to catch in this sample.
+`WindowsAzure.Storage` 9.3.3 documented `CloudQueue.EncodeMessage` with a default of `true`.
+`Azure.Storage.Queues` documents the Track 2 `QueueClientOptions.MessageEncoding` default as
+`QueueMessageEncoding.None`. The factory explicitly selects `QueueMessageEncoding.Base64`, matching
+the legacy wire representation so existing producers, consumers, and queued messages remain
+interoperable.
 
-### Tables
+## Build and safe offline use
 
-- [ ] `CloudTableClient` → `TableServiceClient`; `CloudTable` → `TableClient`.
-- [ ] `DocumentEntity : TableEntity` → a class implementing `ITableEntity` (`PartitionKey`, `RowKey`, `Timestamp` as `DateTimeOffset?`, `ETag` as `ETag`). The read-only `CustomerId` / `DocumentId` convenience properties must survive.
-- [ ] `TableOperation.Insert` → `AddEntityAsync`; `InsertOrReplace` → `UpsertEntityAsync(entity, TableUpdateMode.Replace)`; `InsertOrMerge` → `UpsertEntityAsync(entity, TableUpdateMode.Merge)`; `Retrieve<T>` → `GetEntityAsync<T>` (which **throws 404** rather than returning a null `TableResult.Result`, so `GetAsync` needs a `try`/`catch` or `GetEntityIfExistsAsync`); `Delete` → `DeleteEntityAsync`; `Replace` → `UpdateEntityAsync(entity, entity.ETag, TableUpdateMode.Replace)`.
-- [ ] The string filter DSL becomes either `TableClient.CreateQueryFilter` or a LINQ expression: `QueryAsync<DocumentEntity>(d => d.PartitionKey == customerId && !d.IsArchived)`.
-- [ ] `ExecuteQuerySegmentedAsync` + `TableContinuationToken` loops become `await foreach` over `AsyncPageable<T>`.
-- [ ] `DynamicTableEntity` + `IDictionary<string, EntityProperty>` → `TableEntity` used as a dictionary. The `DumpPartitionAsync` return type has to change; returning `IReadOnlyList<TableEntity>` is fine.
-- [ ] `TableBatchOperation` → `IEnumerable<TableTransactionAction>` + `SubmitTransactionAsync`. The 100-entity chunking must be preserved.
-
-### File shares
-
-- [ ] `CloudFileClient` → `ShareServiceClient`; `CloudFileShare` → `ShareClient`; `CloudFileDirectory` → `ShareDirectoryClient`; `CloudFile` → `ShareFileClient`.
-- [ ] `UploadFromStreamAsync(stream)` → `Create(stream.Length)` **then** `UploadAsync(stream)`. Azure Files requires the file to be created at a fixed size first; a straight rename to `UploadAsync` without the `CreateAsync` call fails at runtime. This is the highest-value failure to catch in the file-share section.
-- [ ] `DownloadToStreamAsync(buffer)` → `DownloadAsync()` then copy `.Value.Content` into the buffer.
-- [ ] `ListFilesAndDirectoriesSegmentedAsync` + `FileContinuationToken` → `await foreach` over `GetFilesAndDirectoriesAsync()`, with `ShareFileItem.IsDirectory` replacing the `as CloudFile` type test.
-- [ ] `FetchAttributesAsync()` + `Properties.Quota` → `GetPropertiesAsync()` → `.Value.QuotaInGB`.
-
-### Build
-
-- [ ] `dotnet build` succeeds.
-- [ ] `git grep -n "WindowsAzure.Storage\|CloudStorageAccount\|CloudBlob\|CloudQueue\|CloudTable\|CloudFile\|TableOperation\|StorageException"` returns nothing.
-
-## Running
+Build the scoped project:
 
 ```powershell
-dotnet build
-$env:CONTOSO_STORAGE_CONNECTION = "DefaultEndpointsProtocol=https;AccountName=..."   # optional
-dotnet run
+dotnet restore .\Contoso.Documents.csproj
+dotnet build .\Contoso.Documents.csproj --no-incremental
 ```
 
-Without `CONTOSO_STORAGE_CONNECTION` the app prints a notice and exits without touching the
-network. `UseDevelopmentStorage=true` works if you have Azurite running.
+There is no test project or existing automated test suite for this sample. A build is compilation
+validation, not a claim that tests passed.
+
+Running without a connection string is the safe offline smoke path:
+
+```powershell
+Remove-Item Env:CONTOSO_STORAGE_CONNECTION -ErrorAction SilentlyContinue
+dotnet run --project .\Contoso.Documents.csproj --no-build
+```
+
+The program prints that there is nothing to do and exits without contacting Azure. Supplying
+`CONTOSO_STORAGE_CONNECTION` makes the sample perform real data-plane operations; that mode requires
+an appropriate storage account and credentials. Live-service behavior, authorization, service-side
+copy completion, SAS usability, and service-specific runtime limits were not exercised during this
+offline migration validation and remain **Unchecked**.

@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Queue;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 
 namespace Contoso.Documents
 {
@@ -10,11 +11,11 @@ namespace Contoso.Documents
     /// </summary>
     public class QueueRepository
     {
-        private readonly CloudQueue _queue;
+        private readonly QueueClient _queue;
 
-        public QueueRepository(CloudQueueClient client, string queueName)
+        public QueueRepository(QueueServiceClient client, string queueName)
         {
-            _queue = client.GetQueueReference(queueName);
+            _queue = client.GetQueueClient(queueName);
         }
 
         public async Task InitializeAsync()
@@ -24,8 +25,7 @@ namespace Contoso.Documents
 
         public async Task EnqueueAsync(string payload)
         {
-            var message = new CloudQueueMessage(payload);
-            await _queue.AddMessageAsync(message).ConfigureAwait(false);
+            await _queue.SendMessageAsync(payload).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -33,10 +33,11 @@ namespace Contoso.Documents
         /// </summary>
         public async Task EnqueueDelayedAsync(string payload, TimeSpan delay)
         {
-            var message = new CloudQueueMessage(payload);
-
             await _queue
-                .AddMessageAsync(message, TimeSpan.FromDays(7), delay, null, null)
+                .SendMessageAsync(
+                    payload,
+                    visibilityTimeout: delay,
+                    timeToLive: TimeSpan.FromDays(7))
                 .ConfigureAwait(false);
         }
 
@@ -46,16 +47,16 @@ namespace Contoso.Documents
         /// </summary>
         public async Task<string> DequeueAsync()
         {
-            CloudQueueMessage message = await _queue.GetMessageAsync().ConfigureAwait(false);
+            QueueMessage message = (await _queue.ReceiveMessageAsync().ConfigureAwait(false)).Value;
 
             if (message is null)
             {
                 return null;
             }
 
-            string payload = message.AsString;
+            string payload = message.MessageText;
 
-            await _queue.DeleteMessageAsync(message).ConfigureAwait(false);
+            await _queue.DeleteMessageAsync(message.MessageId, message.PopReceipt).ConfigureAwait(false);
 
             return payload;
         }
@@ -64,44 +65,51 @@ namespace Contoso.Documents
         {
             var payloads = new List<string>();
 
-            IEnumerable<CloudQueueMessage> messages = await _queue
-                .GetMessagesAsync(count, TimeSpan.FromMinutes(2), null, null)
-                .ConfigureAwait(false);
+            QueueMessage[] messages = (await _queue
+                .ReceiveMessagesAsync(count, TimeSpan.FromMinutes(2))
+                .ConfigureAwait(false)).Value;
 
-            foreach (CloudQueueMessage message in messages)
+            foreach (QueueMessage message in messages)
             {
-                payloads.Add(message.AsString);
-                await _queue.DeleteMessageAsync(message.Id, message.PopReceipt).ConfigureAwait(false);
+                payloads.Add(message.MessageText);
+                await _queue.DeleteMessageAsync(message.MessageId, message.PopReceipt).ConfigureAwait(false);
             }
 
             return payloads;
         }
 
         /// <summary>
-        /// Extends the invisibility window on a message that is taking longer than expected.
+        /// Extends the invisibility window and returns the message with its refreshed pop receipt.
         /// </summary>
-        public async Task RenewLeaseAsync(CloudQueueMessage message, TimeSpan extension)
+        public async Task<QueueMessage> RenewLeaseAsync(QueueMessage message, TimeSpan extension)
         {
-            await _queue
-                .UpdateMessageAsync(message, extension, MessageUpdateFields.Visibility)
-                .ConfigureAwait(false);
+            UpdateReceipt receipt = (await _queue
+                    .UpdateMessageAsync(
+                        message.MessageId,
+                        message.PopReceipt,
+                        messageText: null,
+                        visibilityTimeout: extension)
+                    .ConfigureAwait(false))
+                .Value;
+
+            return message.Update(receipt);
         }
 
         public async Task<string> PeekAsync()
         {
-            CloudQueueMessage message = await _queue.PeekMessageAsync().ConfigureAwait(false);
-            return message?.AsString;
+            PeekedMessage message = (await _queue.PeekMessageAsync().ConfigureAwait(false)).Value;
+            return message?.MessageText;
         }
 
         public async Task<int> GetApproximateLengthAsync()
         {
-            await _queue.FetchAttributesAsync().ConfigureAwait(false);
-            return _queue.ApproximateMessageCount ?? 0;
+            QueueProperties properties = (await _queue.GetPropertiesAsync().ConfigureAwait(false)).Value;
+            return properties.ApproximateMessagesCount;
         }
 
         public async Task ClearAsync()
         {
-            await _queue.ClearAsync().ConfigureAwait(false);
+            await _queue.ClearMessagesAsync().ConfigureAwait(false);
         }
     }
 }

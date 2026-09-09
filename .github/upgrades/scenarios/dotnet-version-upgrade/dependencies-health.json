@@ -1,0 +1,2579 @@
+{
+  "packageGovernance": {
+    "totalDistinctPackages": 85,
+    "totalVersionDriftInstances": 0,
+    "targetFramework": "net10.0",
+    "packages": [
+      {
+        "name": "Microsoft.CSharp",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.NETCore.Platforms",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.1.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.1.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.NETCore.Targets",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.1.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.1.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Win32.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NETStandard.Library",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.6.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.6.1",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Newtonsoft.Json",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.2",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.2",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.native.System",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.native.System.IO.Compression",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.native.System.Net.Http",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.native.System.Security.Cryptography.Apple",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.AppContext",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Buffers",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Collections",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Collections.Concurrent",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Collections.NonGeneric",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Collections.Specialized",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.ComponentModel",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.ComponentModel.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.ComponentModel.TypeConverter",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Console",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Diagnostics.Debug",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Diagnostics.DiagnosticSource",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Diagnostics.Tools",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Diagnostics.Tracing",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Dynamic.Runtime",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Globalization",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Globalization.Calendars",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Globalization.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.IO",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.IO.Compression",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.IO.Compression.ZipFile",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.IO.FileSystem",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.IO.FileSystem.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Linq",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Linq.Expressions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Net.Http",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Net.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Net.Sockets",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.ObjectModel",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Reflection",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Reflection.Emit",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Reflection.Emit.ILGeneration",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Reflection.Emit.Lightweight",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Reflection.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Reflection.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Reflection.TypeExtensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Resources.ResourceManager",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime.Handles",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime.InteropServices",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime.InteropServices.RuntimeInformation",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime.Numerics",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime.Serialization.Formatters",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime.Serialization.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Algorithms",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Cng",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Csp",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Encoding",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.OpenSsl",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.X509Certificates",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Text.Encoding",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Text.Encoding.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Text.RegularExpressions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Threading",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Threading.Tasks",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Threading.Tasks.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Threading.Timer",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Xml.ReaderWriter",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Xml.XDocument",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Xml.XmlDocument",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "WindowsAzure.Storage",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "9.3.3",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "9.3.3",
+            "projects": [
+              "Contoso.Documents"
+            ],
+            "isRecommended": true
+          }
+        ]
+      }
+    ]
+  },
+  "projects": [
+    {
+      "name": "Contoso.Documents",
+      "path": "Contoso.Documents.csproj",
+      "isSdk": true,
+      "currentFrameworks": [
+        "net8.0"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [
+          {
+            "name": "Microsoft.CSharp",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E Microsoft.CSharp"
+            ]
+          },
+          {
+            "name": "Microsoft.NETCore.Platforms",
+            "version": "1.1.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E Microsoft.NETCore.Platforms"
+            ]
+          },
+          {
+            "name": "Microsoft.NETCore.Targets",
+            "version": "1.1.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E Microsoft.Win32.Primitives \u003E Microsoft.NETCore.Targets"
+            ]
+          },
+          {
+            "name": "Microsoft.Win32.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E Microsoft.Win32.Primitives"
+            ]
+          },
+          {
+            "name": "NETStandard.Library",
+            "version": "1.6.1",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library"
+            ]
+          },
+          {
+            "name": "Newtonsoft.Json",
+            "version": "10.0.2",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json"
+            ]
+          },
+          {
+            "name": "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.native.System",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO.Compression \u003E runtime.native.System"
+            ]
+          },
+          {
+            "name": "runtime.native.System.IO.Compression",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO.Compression \u003E runtime.native.System.IO.Compression"
+            ]
+          },
+          {
+            "name": "runtime.native.System.Net.Http",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Net.Http"
+            ]
+          },
+          {
+            "name": "runtime.native.System.Security.Cryptography.Apple",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.Algorithms \u003E runtime.native.System.Security.Cryptography.Apple"
+            ]
+          },
+          {
+            "name": "runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.Algorithms \u003E runtime.native.System.Security.Cryptography.Apple \u003E runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple"
+            ]
+          },
+          {
+            "name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E runtime.native.System.Security.Cryptography.OpenSsl \u003E runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "System.AppContext",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.AppContext"
+            ]
+          },
+          {
+            "name": "System.Buffers",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO.Compression \u003E System.Buffers"
+            ]
+          },
+          {
+            "name": "System.Collections",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Collections"
+            ]
+          },
+          {
+            "name": "System.Collections.Concurrent",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Collections.Concurrent"
+            ]
+          },
+          {
+            "name": "System.Collections.NonGeneric",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.ComponentModel.TypeConverter \u003E System.Collections.NonGeneric"
+            ]
+          },
+          {
+            "name": "System.Collections.Specialized",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.ComponentModel.TypeConverter \u003E System.Collections.Specialized"
+            ]
+          },
+          {
+            "name": "System.ComponentModel",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.ComponentModel.TypeConverter \u003E System.ComponentModel"
+            ]
+          },
+          {
+            "name": "System.ComponentModel.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.ComponentModel.TypeConverter \u003E System.ComponentModel.Primitives"
+            ]
+          },
+          {
+            "name": "System.ComponentModel.TypeConverter",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.ComponentModel.TypeConverter"
+            ]
+          },
+          {
+            "name": "System.Console",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Console"
+            ]
+          },
+          {
+            "name": "System.Diagnostics.Debug",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Diagnostics.Debug"
+            ]
+          },
+          {
+            "name": "System.Diagnostics.DiagnosticSource",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E System.Diagnostics.DiagnosticSource"
+            ]
+          },
+          {
+            "name": "System.Diagnostics.Tools",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Diagnostics.Tools"
+            ]
+          },
+          {
+            "name": "System.Diagnostics.Tracing",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Diagnostics.Tracing"
+            ]
+          },
+          {
+            "name": "System.Dynamic.Runtime",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E Microsoft.CSharp \u003E System.Dynamic.Runtime"
+            ]
+          },
+          {
+            "name": "System.Globalization",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Globalization"
+            ]
+          },
+          {
+            "name": "System.Globalization.Calendars",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Globalization.Calendars"
+            ]
+          },
+          {
+            "name": "System.Globalization.Extensions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E System.Globalization.Extensions"
+            ]
+          },
+          {
+            "name": "System.IO",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO"
+            ]
+          },
+          {
+            "name": "System.IO.Compression",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO.Compression"
+            ]
+          },
+          {
+            "name": "System.IO.Compression.ZipFile",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO.Compression.ZipFile"
+            ]
+          },
+          {
+            "name": "System.IO.FileSystem",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO.FileSystem"
+            ]
+          },
+          {
+            "name": "System.IO.FileSystem.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.IO.FileSystem.Primitives"
+            ]
+          },
+          {
+            "name": "System.Linq",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Linq"
+            ]
+          },
+          {
+            "name": "System.Linq.Expressions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Linq.Expressions"
+            ]
+          },
+          {
+            "name": "System.Net.Http",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http"
+            ]
+          },
+          {
+            "name": "System.Net.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Primitives"
+            ]
+          },
+          {
+            "name": "System.Net.Sockets",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Sockets"
+            ]
+          },
+          {
+            "name": "System.ObjectModel",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.ObjectModel"
+            ]
+          },
+          {
+            "name": "System.Reflection",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Reflection"
+            ]
+          },
+          {
+            "name": "System.Reflection.Emit",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Linq.Expressions \u003E System.Reflection.Emit"
+            ]
+          },
+          {
+            "name": "System.Reflection.Emit.ILGeneration",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Linq.Expressions \u003E System.Reflection.Emit.ILGeneration"
+            ]
+          },
+          {
+            "name": "System.Reflection.Emit.Lightweight",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Linq.Expressions \u003E System.Reflection.Emit.Lightweight"
+            ]
+          },
+          {
+            "name": "System.Reflection.Extensions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Reflection.Extensions"
+            ]
+          },
+          {
+            "name": "System.Reflection.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Reflection.Primitives"
+            ]
+          },
+          {
+            "name": "System.Reflection.TypeExtensions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Linq.Expressions \u003E System.Reflection.TypeExtensions"
+            ]
+          },
+          {
+            "name": "System.Resources.ResourceManager",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Resources.ResourceManager"
+            ]
+          },
+          {
+            "name": "System.Runtime",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Runtime"
+            ]
+          },
+          {
+            "name": "System.Runtime.Extensions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Runtime.Extensions"
+            ]
+          },
+          {
+            "name": "System.Runtime.Handles",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Runtime.Handles"
+            ]
+          },
+          {
+            "name": "System.Runtime.InteropServices",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Runtime.InteropServices"
+            ]
+          },
+          {
+            "name": "System.Runtime.InteropServices.RuntimeInformation",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Runtime.InteropServices.RuntimeInformation"
+            ]
+          },
+          {
+            "name": "System.Runtime.Numerics",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Runtime.Numerics"
+            ]
+          },
+          {
+            "name": "System.Runtime.Serialization.Formatters",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.Runtime.Serialization.Formatters"
+            ]
+          },
+          {
+            "name": "System.Runtime.Serialization.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.Runtime.Serialization.Primitives"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Algorithms",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.Algorithms"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Cng",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.X509Certificates \u003E System.Security.Cryptography.Cng"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Csp",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.X509Certificates \u003E System.Security.Cryptography.Csp"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Encoding",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.Encoding"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.OpenSsl",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Net.Http \u003E System.Security.Cryptography.OpenSsl"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.Primitives"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.X509Certificates",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Security.Cryptography.X509Certificates"
+            ]
+          },
+          {
+            "name": "System.Text.Encoding",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Text.Encoding"
+            ]
+          },
+          {
+            "name": "System.Text.Encoding.Extensions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Text.Encoding.Extensions"
+            ]
+          },
+          {
+            "name": "System.Text.RegularExpressions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Text.RegularExpressions"
+            ]
+          },
+          {
+            "name": "System.Threading",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Threading"
+            ]
+          },
+          {
+            "name": "System.Threading.Tasks",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Threading.Tasks"
+            ]
+          },
+          {
+            "name": "System.Threading.Tasks.Extensions",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Xml.ReaderWriter \u003E System.Threading.Tasks.Extensions"
+            ]
+          },
+          {
+            "name": "System.Threading.Timer",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Threading.Timer"
+            ]
+          },
+          {
+            "name": "System.Xml.ReaderWriter",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Xml.ReaderWriter"
+            ]
+          },
+          {
+            "name": "System.Xml.XDocument",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E NETStandard.Library \u003E System.Xml.XDocument"
+            ]
+          },
+          {
+            "name": "System.Xml.XmlDocument",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.Storage \u003E Newtonsoft.Json \u003E System.Xml.XmlDocument"
+            ]
+          },
+          {
+            "name": "WindowsAzure.Storage",
+            "version": "9.3.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "Contoso.Documents.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          }
+        ],
+        "assemblies": [],
+        "projectReferences": [],
+        "frameworkReferences": []
+      }
+    }
+  ]
+}
