@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Messaging.ServiceBus;
 
 namespace Contoso.Ordering
 {
@@ -9,78 +10,102 @@ namespace Contoso.Ordering
     /// Publishes orders onto the ordering queue. All of these send paths are synchronous or
     /// sync-over-async in the legacy SDK.
     /// </summary>
-    public class OrderSender
+    public sealed class OrderSender : IAsyncDisposable
     {
-        private readonly QueueClient _queueClient;
+        private readonly ServiceBusSender _sender;
 
-        public OrderSender(QueueClient queueClient)
+        public OrderSender(ServiceBusSender sender)
         {
-            _queueClient = queueClient ?? throw new ArgumentNullException(nameof(queueClient));
+            _sender = sender ?? throw new ArgumentNullException(nameof(sender));
         }
 
         /// <summary>
-        /// Fire-and-forget synchronous send.
+        /// Sends one order.
         /// </summary>
-        public void Send(OrderMessage order)
+        public async Task Send(
+            OrderMessage order,
+            CancellationToken cancellationToken = default)
         {
-            var message = new BrokeredMessage(order)
-            {
-                MessageId = order.OrderId,
-                CorrelationId = order.CustomerId,
-                Label = "order-placed",
-                ContentType = "application/xml",
-                TimeToLive = TimeSpan.FromHours(12),
-            };
+            ServiceBusMessage message = CreateMessage(order, "order-placed");
+            message.CorrelationId = order.CustomerId;
+            message.ContentType = "application/xml";
+            message.TimeToLive = TimeSpan.FromHours(12);
+            message.ApplicationProperties["total"] = (double)order.Total;
+            message.ApplicationProperties["priority"] = order.Total > 1000m ? "high" : "normal";
 
-            message.Properties["region"] = order.Region;
-            message.Properties["total"] = (double)order.Total;
-            message.Properties["priority"] = order.Total > 1000m ? "high" : "normal";
-
-            _queueClient.Send(message);
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            await _sender.SendMessageAsync(message, timeout.Token).ConfigureAwait(false);
         }
 
-        public async Task SendAsync(OrderMessage order)
+        public async Task SendAsync(
+            OrderMessage order,
+            CancellationToken cancellationToken = default)
         {
-            var message = new BrokeredMessage(order)
-            {
-                MessageId = order.OrderId,
-                Label = "order-placed",
-            };
-
-            message.Properties["region"] = order.Region;
-
-            await _queueClient.SendAsync(message).ConfigureAwait(false);
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            await _sender
+                .SendMessageAsync(CreateMessage(order, "order-placed"), timeout.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Batched send. The legacy SDK silently fails if the batch exceeds the entity's max
-        /// message size, so callers had to chunk by hand.
+        /// Sends size-aware batches accepted by Service Bus.
         /// </summary>
-        public async Task SendBatchAsync(IEnumerable<OrderMessage> orders)
+        public async Task SendBatchAsync(
+            IEnumerable<OrderMessage> orders,
+            CancellationToken cancellationToken = default)
         {
-            var batch = new List<BrokeredMessage>();
-
-            foreach (OrderMessage order in orders)
+            if (orders == null)
             {
-                var message = new BrokeredMessage(order)
-                {
-                    MessageId = order.OrderId,
-                    Label = "order-placed",
-                };
-
-                message.Properties["region"] = order.Region;
-                batch.Add(message);
-
-                if (batch.Count == 100)
-                {
-                    await _queueClient.SendBatchAsync(batch).ConfigureAwait(false);
-                    batch.Clear();
-                }
+                throw new ArgumentNullException(nameof(orders));
             }
 
-            if (batch.Count > 0)
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            CancellationToken operationToken = timeout.Token;
+
+            ServiceBusMessageBatch batch = await _sender
+                .CreateMessageBatchAsync(operationToken)
+                .ConfigureAwait(false);
+            try
             {
-                await _queueClient.SendBatchAsync(batch).ConfigureAwait(false);
+                foreach (OrderMessage order in orders)
+                {
+                    operationToken.ThrowIfCancellationRequested();
+                    ServiceBusMessage message = CreateMessage(order, "order-placed");
+                    if (batch.TryAddMessage(message))
+                    {
+                        continue;
+                    }
+
+                    if (batch.Count == 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"Order {order.OrderId} is too large for a Service Bus batch.");
+                    }
+
+                    await _sender.SendMessagesAsync(batch, operationToken).ConfigureAwait(false);
+                    batch.Dispose();
+                    batch = await _sender
+                        .CreateMessageBatchAsync(operationToken)
+                        .ConfigureAwait(false);
+
+                    if (!batch.TryAddMessage(message))
+                    {
+                        throw new InvalidOperationException(
+                            $"Order {order.OrderId} is too large for a Service Bus batch.");
+                    }
+                }
+
+                if (batch.Count > 0)
+                {
+                    await _sender.SendMessagesAsync(batch, operationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                batch.Dispose();
             }
         }
 
@@ -88,40 +113,66 @@ namespace Contoso.Ordering
         /// Schedules an order for later delivery. Note <see cref="DateTime"/> rather than
         /// <see cref="DateTimeOffset"/>.
         /// </summary>
-        public async Task ScheduleAsync(OrderMessage order, DateTime enqueueAtUtc)
+        public async Task ScheduleAsync(
+            OrderMessage order,
+            DateTime enqueueAtUtc,
+            CancellationToken cancellationToken = default)
         {
-            var message = new BrokeredMessage(order)
-            {
-                MessageId = order.OrderId,
-                ScheduledEnqueueTimeUtc = enqueueAtUtc,
-                Label = "order-scheduled",
-            };
+            DateTime utc = enqueueAtUtc.Kind == DateTimeKind.Utc
+                ? enqueueAtUtc
+                : DateTime.SpecifyKind(enqueueAtUtc, DateTimeKind.Utc);
 
-            message.Properties["region"] = order.Region;
-
-            await _queueClient.SendAsync(message).ConfigureAwait(false);
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            await _sender
+                .ScheduleMessageAsync(
+                    CreateMessage(order, "order-scheduled"),
+                    new DateTimeOffset(utc),
+                    timeout.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
         /// Sends every message in a session so an ordered consumer sees them in sequence.
         /// </summary>
-        public async Task SendSessionAsync(string sessionId, IEnumerable<OrderMessage> orders)
+        public async Task SendSessionAsync(
+            string sessionId,
+            IEnumerable<OrderMessage> orders,
+            CancellationToken cancellationToken = default)
         {
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+
             foreach (OrderMessage order in orders)
             {
-                var message = new BrokeredMessage(order)
-                {
-                    SessionId = sessionId,
-                    MessageId = order.OrderId,
-                };
+                timeout.Token.ThrowIfCancellationRequested();
+                ServiceBusMessage message = CreateMessage(order, null);
+                message.SessionId = sessionId;
 
-                await _queueClient.SendAsync(message).ConfigureAwait(false);
+                await _sender.SendMessageAsync(message, timeout.Token).ConfigureAwait(false);
             }
         }
 
-        public void Close()
+        public ValueTask DisposeAsync()
         {
-            _queueClient.Close();
+            return _sender.DisposeAsync();
+        }
+
+        private static ServiceBusMessage CreateMessage(OrderMessage order, string subject)
+        {
+            if (order == null)
+            {
+                throw new ArgumentNullException(nameof(order));
+            }
+
+            var message = new ServiceBusMessage(OrderMessage.Serialize(order))
+            {
+                MessageId = order.OrderId,
+                Subject = subject,
+            };
+
+            message.ApplicationProperties["region"] = order.Region;
+            return message;
         }
     }
 }
