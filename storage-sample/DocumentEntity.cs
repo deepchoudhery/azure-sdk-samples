@@ -1,13 +1,14 @@
 using System;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure;
+using Azure.Data.Tables;
 
 namespace Contoso.Documents
 {
     /// <summary>
-    /// Table row describing one stored document. Inherits <see cref="TableEntity"/> to pick up
-    /// PartitionKey/RowKey/Timestamp/ETag plus reflection-based (de)serialization.
+    /// Table row describing one stored document. Implements <see cref="ITableEntity"/> so the
+    /// Track 2 table client can serialize its public properties.
     /// </summary>
-    public class DocumentEntity : TableEntity
+    public class DocumentEntity : ITableEntity
     {
         public DocumentEntity()
         {
@@ -18,6 +19,10 @@ namespace Contoso.Documents
             PartitionKey = customerId;
             RowKey = documentId;
         }
+
+        public string PartitionKey { get; set; }
+
+        public string RowKey { get; set; }
 
         public string BlobName { get; set; }
 
@@ -30,6 +35,10 @@ namespace Contoso.Documents
         public DateTime IndexedOnUtc { get; set; }
 
         public bool IsArchived { get; set; }
+
+        public DateTimeOffset? Timestamp { get; set; }
+
+        public ETag ETag { get; set; }
 
         public string CustomerId
         {

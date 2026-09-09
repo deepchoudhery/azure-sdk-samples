@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure;
+using Azure.Data.Tables;
 
 namespace Contoso.Documents
 {
     /// <summary>
-    /// Document metadata index. Every write goes through a <see cref="TableOperation"/> that is
-    /// then handed to <c>ExecuteAsync</c>.
+    /// Document metadata index.
     /// </summary>
     public class TableRepository
     {
-        private readonly CloudTable _table;
+        private readonly TableClient _table;
 
-        public TableRepository(CloudTableClient client, string tableName)
+        public TableRepository(TableServiceClient client, string tableName)
         {
-            _table = client.GetTableReference(tableName);
+            _table = client.GetTableClient(tableName);
         }
 
         public async Task InitializeAsync()
@@ -26,30 +25,25 @@ namespace Contoso.Documents
 
         public async Task InsertAsync(DocumentEntity document)
         {
-            TableOperation operation = TableOperation.Insert(document);
-            await _table.ExecuteAsync(operation).ConfigureAwait(false);
+            await _table.AddEntityAsync(document).ConfigureAwait(false);
         }
 
         public async Task UpsertAsync(DocumentEntity document)
         {
-            TableOperation operation = TableOperation.InsertOrReplace(document);
-            await _table.ExecuteAsync(operation).ConfigureAwait(false);
+            await _table.UpsertEntityAsync(document, TableUpdateMode.Replace).ConfigureAwait(false);
         }
 
         public async Task MergeAsync(DocumentEntity document)
         {
-            TableOperation operation = TableOperation.InsertOrMerge(document);
-            await _table.ExecuteAsync(operation).ConfigureAwait(false);
+            await _table.UpsertEntityAsync(document, TableUpdateMode.Merge).ConfigureAwait(false);
         }
 
         public async Task<DocumentEntity> GetAsync(string customerId, string documentId)
         {
-            TableOperation operation =
-                TableOperation.Retrieve<DocumentEntity>(customerId, documentId);
-
-            TableResult result = await _table.ExecuteAsync(operation).ConfigureAwait(false);
-
-            return result.Result as DocumentEntity;
+            NullableResponse<DocumentEntity> result = await _table
+                .GetEntityIfExistsAsync<DocumentEntity>(customerId, documentId)
+                .ConfigureAwait(false);
+            return result.HasValue ? result.Value : null;
         }
 
         public async Task DeleteAsync(string customerId, string documentId)
@@ -61,42 +55,23 @@ namespace Contoso.Documents
                 return;
             }
 
-            TableOperation operation = TableOperation.Delete(existing);
-            await _table.ExecuteAsync(operation).ConfigureAwait(false);
+            await _table
+                .DeleteEntityAsync(existing.PartitionKey, existing.RowKey, existing.ETag)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Segmented query over one partition, filtered with the string-built filter DSL.
+        /// Paged query over one partition for active documents.
         /// </summary>
         public async Task<IReadOnlyList<DocumentEntity>> ListForCustomerAsync(string customerId)
         {
-            string partitionFilter = TableQuery.GenerateFilterCondition(
-                "PartitionKey",
-                QueryComparisons.Equal,
-                customerId);
-
-            string activeFilter = TableQuery.GenerateFilterConditionForBool(
-                "IsArchived",
-                QueryComparisons.Equal,
-                false);
-
-            var query = new TableQuery<DocumentEntity>()
-                .Where(TableQuery.CombineFilters(partitionFilter, TableOperators.And, activeFilter))
-                .Take(200);
-
             var results = new List<DocumentEntity>();
-            TableContinuationToken token = null;
-
-            do
+            await foreach (DocumentEntity document in _table.QueryAsync<DocumentEntity>(
+                document => document.PartitionKey == customerId && !document.IsArchived,
+                maxPerPage: 200))
             {
-                TableQuerySegment<DocumentEntity> segment = await _table
-                    .ExecuteQuerySegmentedAsync(query, token)
-                    .ConfigureAwait(false);
-
-                results.AddRange(segment.Results);
-                token = segment.ContinuationToken;
+                results.Add(document);
             }
-            while (token != null);
 
             return results;
         }
@@ -104,33 +79,15 @@ namespace Contoso.Documents
         /// <summary>
         /// Schema-less read used by the admin tool, which does not know the entity shape.
         /// </summary>
-        public async Task<IReadOnlyList<IDictionary<string, EntityProperty>>> DumpPartitionAsync(
+        public async Task<IReadOnlyList<TableEntity>> DumpPartitionAsync(
             string customerId)
         {
-            string filter = TableQuery.GenerateFilterCondition(
-                "PartitionKey",
-                QueryComparisons.Equal,
-                customerId);
-
-            var query = new TableQuery<DynamicTableEntity>().Where(filter);
-
-            var rows = new List<IDictionary<string, EntityProperty>>();
-            TableContinuationToken token = null;
-
-            do
+            var rows = new List<TableEntity>();
+            await foreach (TableEntity entity in _table.QueryAsync<TableEntity>(
+                entity => entity.PartitionKey == customerId))
             {
-                TableQuerySegment<DynamicTableEntity> segment = await _table
-                    .ExecuteQuerySegmentedAsync(query, token)
-                    .ConfigureAwait(false);
-
-                foreach (DynamicTableEntity entity in segment.Results)
-                {
-                    rows.Add(entity.Properties);
-                }
-
-                token = segment.ContinuationToken;
+                rows.Add(entity);
             }
-            while (token != null);
 
             return rows;
         }
@@ -140,22 +97,24 @@ namespace Contoso.Documents
         /// </summary>
         public async Task UpsertBatchAsync(IEnumerable<DocumentEntity> documents)
         {
-            var batch = new TableBatchOperation();
+            var batch = new List<TableTransactionAction>(100);
 
             foreach (DocumentEntity document in documents)
             {
-                batch.InsertOrReplace(document);
+                batch.Add(new TableTransactionAction(
+                    TableTransactionActionType.UpsertReplace,
+                    document));
 
                 if (batch.Count == 100)
                 {
-                    await _table.ExecuteBatchAsync(batch).ConfigureAwait(false);
-                    batch = new TableBatchOperation();
+                    await _table.SubmitTransactionAsync(batch).ConfigureAwait(false);
+                    batch = new List<TableTransactionAction>(100);
                 }
             }
 
             if (batch.Count > 0)
             {
-                await _table.ExecuteBatchAsync(batch).ConfigureAwait(false);
+                await _table.SubmitTransactionAsync(batch).ConfigureAwait(false);
             }
         }
 
@@ -166,11 +125,12 @@ namespace Contoso.Documents
         {
             try
             {
-                TableOperation operation = TableOperation.Replace(document);
-                await _table.ExecuteAsync(operation).ConfigureAwait(false);
+                await _table
+                    .UpdateEntityAsync(document, document.ETag, TableUpdateMode.Replace)
+                    .ConfigureAwait(false);
                 return true;
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == 412)
+            catch (RequestFailedException ex) when (ex.Status == 412)
             {
                 return false;
             }
