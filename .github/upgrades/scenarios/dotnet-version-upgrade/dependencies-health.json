@@ -1,0 +1,534 @@
+{
+  "packageGovernance": {
+    "totalDistinctPackages": 16,
+    "totalVersionDriftInstances": 0,
+    "targetFramework": "net10.0",
+    "packages": [
+      {
+        "name": "Microsoft.Azure.Services.AppAuthentication",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.4.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.4.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.IdentityModel.Clients.ActiveDirectory",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "5.2.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "5.2.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.IdentityModel.JsonWebTokens",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "6.7.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "6.7.1",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.IdentityModel.Logging",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "6.7.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "6.7.1",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.IdentityModel.Tokens",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "6.7.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "6.7.1",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Rest.ClientRuntime",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.3.20",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "2.3.20",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Newtonsoft.Json",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.3",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.3",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.IdentityModel.Tokens.Jwt",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "6.7.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "6.7.1",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.IO",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Net.Http",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.4",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.4",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Runtime",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Algorithms",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Encoding",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Security.Cryptography.X509Certificates",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "WindowsAzure.ServiceBus",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "6.2.1",
+        "isCompatible": false,
+        "description": "Replace with Azure.Messaging.ServiceBus: Use ServiceBusClient/Sender/Processor pattern",
+        "versions": [
+          {
+            "version": "6.2.1",
+            "projects": [
+              "Contoso.Ordering"
+            ],
+            "isRecommended": true
+          }
+        ]
+      }
+    ]
+  },
+  "projects": [
+    {
+      "name": "Contoso.Ordering",
+      "path": "Contoso.Ordering.csproj",
+      "isSdk": true,
+      "currentFrameworks": [
+        "net472"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [
+          {
+            "name": "Microsoft.Azure.Services.AppAuthentication",
+            "version": "1.4.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication"
+            ]
+          },
+          {
+            "name": "Microsoft.IdentityModel.Clients.ActiveDirectory",
+            "version": "5.2.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory"
+            ]
+          },
+          {
+            "name": "Microsoft.IdentityModel.JsonWebTokens",
+            "version": "6.7.1",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E System.IdentityModel.Tokens.Jwt \u003E Microsoft.IdentityModel.JsonWebTokens"
+            ]
+          },
+          {
+            "name": "Microsoft.IdentityModel.Logging",
+            "version": "6.7.1",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E System.IdentityModel.Tokens.Jwt \u003E Microsoft.IdentityModel.Tokens \u003E Microsoft.IdentityModel.Logging"
+            ]
+          },
+          {
+            "name": "Microsoft.IdentityModel.Tokens",
+            "version": "6.7.1",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E System.IdentityModel.Tokens.Jwt \u003E Microsoft.IdentityModel.Tokens"
+            ]
+          },
+          {
+            "name": "Microsoft.Rest.ClientRuntime",
+            "version": "2.3.20",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Rest.ClientRuntime"
+            ]
+          },
+          {
+            "name": "Newtonsoft.Json",
+            "version": "10.0.3",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Rest.ClientRuntime \u003E Newtonsoft.Json"
+            ]
+          },
+          {
+            "name": "System.IdentityModel.Tokens.Jwt",
+            "version": "6.7.1",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E System.IdentityModel.Tokens.Jwt"
+            ]
+          },
+          {
+            "name": "System.IO",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory \u003E System.Net.Http \u003E System.Security.Cryptography.X509Certificates \u003E System.Security.Cryptography.Algorithms \u003E System.IO"
+            ]
+          },
+          {
+            "name": "System.Net.Http",
+            "version": "4.3.4",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory \u003E System.Net.Http"
+            ]
+          },
+          {
+            "name": "System.Runtime",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory \u003E System.Net.Http \u003E System.Security.Cryptography.X509Certificates \u003E System.Security.Cryptography.Algorithms \u003E System.Runtime"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Algorithms",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory \u003E System.Net.Http \u003E System.Security.Cryptography.X509Certificates \u003E System.Security.Cryptography.Algorithms"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Encoding",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory \u003E System.Net.Http \u003E System.Security.Cryptography.X509Certificates \u003E System.Security.Cryptography.Encoding"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.Primitives",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory \u003E System.Net.Http \u003E System.Security.Cryptography.X509Certificates \u003E System.Security.Cryptography.Algorithms \u003E System.Security.Cryptography.Primitives"
+            ]
+          },
+          {
+            "name": "System.Security.Cryptography.X509Certificates",
+            "version": "4.3.0",
+            "isTransitive": true,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": "",
+            "transitiveChain": [
+              "WindowsAzure.ServiceBus \u003E Microsoft.Azure.Services.AppAuthentication \u003E Microsoft.IdentityModel.Clients.ActiveDirectory \u003E System.Net.Http \u003E System.Security.Cryptography.X509Certificates"
+            ]
+          },
+          {
+            "name": "WindowsAzure.ServiceBus",
+            "version": "6.2.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "Contoso.Ordering.csproj"
+              }
+            ],
+            "description": "Replace with Azure.Messaging.ServiceBus: Use ServiceBusClient/Sender/Processor pattern",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          }
+        ],
+        "assemblies": [
+          {
+            "name": "System",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression",
+            "version": "",
+            "isTransitive": true,
+            "compatibility": "valid"
+          }
+        ],
+        "projectReferences": [],
+        "frameworkReferences": []
+      }
+    }
+  ]
+}
