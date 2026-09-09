@@ -1,121 +1,174 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Messaging.ServiceBus;
 
 namespace Contoso.Ordering
 {
     /// <summary>
-    /// Consumes the ordering queue with the legacy <c>OnMessage</c> pump and settles each
-    /// message by hand.
+    /// Consumes the ordering queue with a peek-lock processor and settles each message by hand.
     /// </summary>
-    public class OrderProcessor
+    public sealed class OrderProcessor : IAsyncDisposable
     {
-        private readonly QueueClient _queueClient;
+        private readonly ServiceBusClient _client;
+        private readonly ServiceBusReceiver _receiver;
+        private readonly string _queueName;
         private readonly Action<OrderMessage> _handler;
+        private ServiceBusProcessor _processor;
+        private bool _processorStarted;
 
-        public OrderProcessor(QueueClient queueClient, Action<OrderMessage> handler)
+        public OrderProcessor(
+            ServiceBusClient client,
+            string queueName,
+            Action<OrderMessage> handler)
         {
-            _queueClient = queueClient ?? throw new ArgumentNullException(nameof(queueClient));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _queueName = string.IsNullOrWhiteSpace(queueName)
+                ? throw new ArgumentException("A queue name is required.", nameof(queueName))
+                : queueName;
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _receiver = _client.CreateReceiver(
+                _queueName,
+                new ServiceBusReceiverOptions { ReceiveMode = ServiceBusReceiveMode.PeekLock });
         }
 
         /// <summary>
         /// Synchronous message pump with manual settlement.
         /// </summary>
-        public void Start()
+        public Task Start(CancellationToken cancellationToken = default)
         {
-            var options = new OnMessageOptions
+            var options = new ServiceBusProcessorOptions
             {
-                AutoComplete = false,
+                AutoCompleteMessages = false,
                 MaxConcurrentCalls = 4,
-                AutoRenewTimeout = TimeSpan.FromMinutes(1),
+                MaxAutoLockRenewalDuration = TimeSpan.FromMinutes(1),
+                ReceiveMode = ServiceBusReceiveMode.PeekLock,
             };
 
-            options.ExceptionReceived += OnExceptionReceived;
-
-            _queueClient.OnMessage(
-                message =>
+            return StartProcessorAsync(
+                options,
+                async args =>
                 {
+                    using CancellationTokenSource timeout =
+                        ServiceBusOperationPolicy.CreateCancellationSource(args.CancellationToken);
+
                     try
                     {
-                        OrderMessage order = message.GetBody<OrderMessage>();
+                        OrderMessage order = OrderMessage.Deserialize(args.Message.Body);
 
-                        object region;
-                        if (message.Properties.TryGetValue("region", out region))
+                        if (args.Message.ApplicationProperties.TryGetValue("region", out object region))
                         {
                             Console.WriteLine($"Handling {order.OrderId} for region {region}.");
                         }
 
                         _handler(order);
-                        message.Complete();
+                        await args
+                            .CompleteMessageAsync(args.Message, timeout.Token)
+                            .ConfigureAwait(false);
                     }
                     catch (SerializationException)
                     {
                         // Poison payload — never going to succeed, so remove it from the queue.
-                        message.DeadLetter("DeserializationFailed", "Body was not an OrderMessage.");
+                        await args
+                            .DeadLetterMessageAsync(
+                                args.Message,
+                                "DeserializationFailed",
+                                "Body was not an OrderMessage.",
+                                timeout.Token)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+                    {
+                        throw;
                     }
                     catch (Exception)
                     {
-                        if (message.DeliveryCount >= 5)
+                        if (args.Message.DeliveryCount >= 5)
                         {
-                            message.DeadLetter("TooManyAttempts", "Exceeded retry budget.");
+                            await args
+                                .DeadLetterMessageAsync(
+                                    args.Message,
+                                    "TooManyAttempts",
+                                    "Exceeded retry budget.",
+                                    timeout.Token)
+                                .ConfigureAwait(false);
                         }
                         else
                         {
-                            message.Abandon();
+                            await args
+                                .AbandonMessageAsync(args.Message, cancellationToken: timeout.Token)
+                                .ConfigureAwait(false);
                         }
                     }
                 },
-                options);
+                cancellationToken);
         }
 
         /// <summary>
         /// Async variant of the same pump.
         /// </summary>
-        public void StartAsync()
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
-            var options = new OnMessageOptions
+            var options = new ServiceBusProcessorOptions
             {
-                AutoComplete = false,
+                AutoCompleteMessages = false,
                 MaxConcurrentCalls = 8,
+                ReceiveMode = ServiceBusReceiveMode.PeekLock,
             };
 
-            options.ExceptionReceived += OnExceptionReceived;
-
-            _queueClient.OnMessageAsync(
-                async message =>
+            return StartProcessorAsync(
+                options,
+                async args =>
                 {
+                    using CancellationTokenSource timeout =
+                        ServiceBusOperationPolicy.CreateCancellationSource(args.CancellationToken);
+
                     try
                     {
-                        OrderMessage order = message.GetBody<OrderMessage>();
+                        OrderMessage order = OrderMessage.Deserialize(args.Message.Body);
                         _handler(order);
-                        await message.CompleteAsync().ConfigureAwait(false);
+                        await args
+                            .CompleteMessageAsync(args.Message, timeout.Token)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+                    {
+                        throw;
                     }
                     catch (Exception)
                     {
-                        await message.AbandonAsync().ConfigureAwait(false);
+                        await args
+                            .AbandonMessageAsync(args.Message, cancellationToken: timeout.Token)
+                            .ConfigureAwait(false);
                     }
                 },
-                options);
+                cancellationToken);
         }
 
         /// <summary>
         /// Explicit pull-based drain, used by the nightly reconciliation job.
         /// </summary>
-        public async Task<IReadOnlyList<OrderMessage>> DrainAsync(int maxMessages)
+        public async Task<IReadOnlyList<OrderMessage>> DrainAsync(
+            int maxMessages,
+            CancellationToken cancellationToken = default)
         {
             var drained = new List<OrderMessage>();
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
 
-            IEnumerable<BrokeredMessage> batch = await _queueClient
-                .ReceiveBatchAsync(maxMessages, TimeSpan.FromSeconds(5))
+            IReadOnlyList<ServiceBusReceivedMessage> batch = await _receiver
+                .ReceiveMessagesAsync(maxMessages, TimeSpan.FromSeconds(5), timeout.Token)
                 .ConfigureAwait(false);
 
-            foreach (BrokeredMessage message in batch)
+            foreach (ServiceBusReceivedMessage message in batch)
             {
-                drained.Add(message.GetBody<OrderMessage>());
-                await message.CompleteAsync().ConfigureAwait(false);
+                timeout.Token.ThrowIfCancellationRequested();
+                drained.Add(OrderMessage.Deserialize(message.Body));
+                await _receiver
+                    .CompleteMessageAsync(message, timeout.Token)
+                    .ConfigureAwait(false);
             }
 
             return drained;
@@ -124,23 +177,64 @@ namespace Contoso.Ordering
         /// <summary>
         /// Peeks a single message without removing it from the queue.
         /// </summary>
-        public async Task<OrderMessage> PeekAsync()
+        public async Task<OrderMessage> PeekAsync(
+            CancellationToken cancellationToken = default)
         {
-            BrokeredMessage message = await _queueClient.PeekAsync().ConfigureAwait(false);
-            return message?.GetBody<OrderMessage>();
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            ServiceBusReceivedMessage message = await _receiver
+                .PeekMessageAsync(cancellationToken: timeout.Token)
+                .ConfigureAwait(false);
+            return message == null ? null : OrderMessage.Deserialize(message.Body);
         }
 
-        public void Stop()
+        public async Task StopAsync(CancellationToken cancellationToken = default)
         {
-            _queueClient.Close();
-        }
-
-        private static void OnExceptionReceived(object sender, ExceptionReceivedEventArgs e)
-        {
-            if (e.Exception != null)
+            if (_processor != null && _processorStarted)
             {
-                Console.Error.WriteLine($"Service Bus error during {e.Action}: {e.Exception.Message}");
+                using CancellationTokenSource timeout =
+                    ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+                await _processor.StopProcessingAsync(timeout.Token).ConfigureAwait(false);
+                _processorStarted = false;
             }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await StopAsync().ConfigureAwait(false);
+
+            if (_processor != null)
+            {
+                await _processor.DisposeAsync().ConfigureAwait(false);
+            }
+
+            await _receiver.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private async Task StartProcessorAsync(
+            ServiceBusProcessorOptions options,
+            Func<ProcessMessageEventArgs, Task> handler,
+            CancellationToken cancellationToken)
+        {
+            if (_processor != null)
+            {
+                throw new InvalidOperationException("The order processor has already been configured.");
+            }
+
+            _processor = _client.CreateProcessor(_queueName, options);
+            _processor.ProcessMessageAsync += handler;
+            _processor.ProcessErrorAsync += OnProcessErrorAsync;
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            await _processor.StartProcessingAsync(timeout.Token).ConfigureAwait(false);
+            _processorStarted = true;
+        }
+
+        private static Task OnProcessErrorAsync(ProcessErrorEventArgs args)
+        {
+            Console.Error.WriteLine(
+                $"Service Bus error during {args.ErrorSource}: {args.Exception.Message}");
+            return Task.CompletedTask;
         }
     }
 }

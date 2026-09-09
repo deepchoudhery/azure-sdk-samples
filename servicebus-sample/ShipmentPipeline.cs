@@ -1,6 +1,7 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Messaging.ServiceBus;
 
 namespace Contoso.Ordering
 {
@@ -8,91 +9,139 @@ namespace Contoso.Ordering
     /// Fan-out side of the pipeline: shipments are published to a topic and each downstream
     /// team owns a filtered subscription.
     /// </summary>
-    public class ShipmentPublisher
+    public sealed class ShipmentPublisher : IAsyncDisposable
     {
-        private readonly TopicClient _topicClient;
+        private readonly ServiceBusSender _sender;
 
-        public ShipmentPublisher(TopicClient topicClient)
+        public ShipmentPublisher(ServiceBusSender sender)
         {
-            _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
+            _sender = sender ?? throw new ArgumentNullException(nameof(sender));
         }
 
-        public async Task PublishAsync(OrderMessage order, string carrier)
+        public async Task PublishAsync(
+            OrderMessage order,
+            string carrier,
+            CancellationToken cancellationToken = default)
         {
-            var message = new BrokeredMessage(order)
+            var message = new ServiceBusMessage(OrderMessage.Serialize(order))
             {
                 MessageId = $"{order.OrderId}:{carrier}",
-                Label = "shipment-ready",
+                Subject = "shipment-ready",
             };
 
-            message.Properties["region"] = order.Region;
-            message.Properties["carrier"] = carrier;
-            message.Properties["expedited"] = order.Total > 500m;
+            message.ApplicationProperties["region"] = order.Region;
+            message.ApplicationProperties["carrier"] = carrier;
+            message.ApplicationProperties["expedited"] = order.Total > 500m;
 
-            await _topicClient.SendAsync(message).ConfigureAwait(false);
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            await _sender.SendMessageAsync(message, timeout.Token).ConfigureAwait(false);
         }
 
-        public void Close()
+        public ValueTask DisposeAsync()
         {
-            _topicClient.Close();
+            return _sender.DisposeAsync();
         }
     }
 
     /// <summary>
     /// Consumes one subscription of the shipments topic.
     /// </summary>
-    public class ShipmentSubscriber
+    public sealed class ShipmentSubscriber : IAsyncDisposable
     {
-        private readonly SubscriptionClient _subscriptionClient;
+        private readonly ServiceBusProcessor _processor;
+        private bool _processorStarted;
 
-        public ShipmentSubscriber(SubscriptionClient subscriptionClient)
+        public ShipmentSubscriber(
+            ServiceBusClient client,
+            string topicName,
+            string subscriptionName)
         {
-            _subscriptionClient = subscriptionClient
-                ?? throw new ArgumentNullException(nameof(subscriptionClient));
+            if (client == null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
+            _processor = client.CreateProcessor(
+                topicName,
+                subscriptionName,
+                new ServiceBusProcessorOptions
+                {
+                    AutoCompleteMessages = false,
+                    MaxConcurrentCalls = 2,
+                    ReceiveMode = ServiceBusReceiveMode.PeekLock,
+                });
         }
 
-        public void Start(Func<OrderMessage, string, Task> onShipment)
+        public async Task StartAsync(
+            Func<OrderMessage, string, Task> onShipment,
+            CancellationToken cancellationToken = default)
         {
-            var options = new OnMessageOptions
+            if (onShipment == null)
             {
-                AutoComplete = false,
-                MaxConcurrentCalls = 2,
-            };
+                throw new ArgumentNullException(nameof(onShipment));
+            }
 
-            options.ExceptionReceived += (sender, e) =>
-            {
-                if (e.Exception != null)
-                {
-                    Console.Error.WriteLine($"Subscription error: {e.Exception.Message}");
-                }
-            };
-
-            _subscriptionClient.OnMessageAsync(
+            _processor.ProcessMessageAsync +=
                 async message =>
                 {
-                    OrderMessage order = message.GetBody<OrderMessage>();
+                    using CancellationTokenSource timeout =
+                        ServiceBusOperationPolicy.CreateCancellationSource(
+                            message.CancellationToken);
+                    OrderMessage order = OrderMessage.Deserialize(message.Message.Body);
 
-                    object carrier;
-                    message.Properties.TryGetValue("carrier", out carrier);
+                    message.Message.ApplicationProperties.TryGetValue("carrier", out object carrier);
 
                     try
                     {
                         await onShipment(order, carrier as string).ConfigureAwait(false);
-                        await message.CompleteAsync().ConfigureAwait(false);
+                        await message
+                            .CompleteMessageAsync(message.Message, timeout.Token)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+                    {
+                        throw;
                     }
                     catch (Exception ex)
                     {
                         await message
-                            .DeadLetterAsync("ShipmentHandlerFailed", ex.Message)
+                            .DeadLetterMessageAsync(
+                                message.Message,
+                                "ShipmentHandlerFailed",
+                                ex.Message,
+                                timeout.Token)
                             .ConfigureAwait(false);
                     }
-                },
-                options);
+                };
+
+            _processor.ProcessErrorAsync += args =>
+            {
+                Console.Error.WriteLine($"Subscription error: {args.Exception.Message}");
+                return Task.CompletedTask;
+            };
+
+            using CancellationTokenSource timeout =
+                ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+            await _processor.StartProcessingAsync(timeout.Token).ConfigureAwait(false);
+            _processorStarted = true;
         }
 
-        public void Stop()
+        public async Task StopAsync(CancellationToken cancellationToken = default)
         {
-            _subscriptionClient.Close();
+            if (_processorStarted)
+            {
+                using CancellationTokenSource timeout =
+                    ServiceBusOperationPolicy.CreateCancellationSource(cancellationToken);
+                await _processor.StopProcessingAsync(timeout.Token).ConfigureAwait(false);
+                _processorStarted = false;
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await StopAsync().ConfigureAwait(false);
+            await _processor.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
