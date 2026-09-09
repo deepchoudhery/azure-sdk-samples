@@ -1,32 +1,29 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Rest.Azure;
+using Azure;
+using Azure.Security.KeyVault.Secrets;
 
 namespace Contoso.Secrets
 {
     /// <summary>
-    /// Reads and writes secrets. Every call has to repeat the vault base URL because the
-    /// legacy client is vault-agnostic.
+    /// Reads and writes secrets through a client bound to one vault.
     /// </summary>
     public class SecretManager
     {
-        private readonly KeyVaultClient _client;
-        private readonly string _vaultBaseUrl;
+        private readonly VaultClients _clients;
+        private readonly SecretClient _client;
 
-        public SecretManager(KeyVaultClient client, string vaultBaseUrl)
+        public SecretManager(VaultClients clients)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _vaultBaseUrl = vaultBaseUrl ?? throw new ArgumentNullException(nameof(vaultBaseUrl));
+            _clients = clients ?? throw new ArgumentNullException(nameof(clients));
+            _client = clients.Secrets;
         }
 
         public async Task<string> GetConnectionStringAsync(string secretName)
         {
-            SecretBundle secret = await _client.GetSecretAsync(_vaultBaseUrl, secretName)
+            KeyVaultSecret secret = await _client.GetSecretAsync(secretName)
                 .ConfigureAwait(false);
 
             return secret.Value;
@@ -37,27 +34,26 @@ namespace Contoso.Secrets
         /// </summary>
         public async Task<string> GetPinnedVersionAsync(string secretName, string version)
         {
-            SecretBundle secret = await _client
-                .GetSecretAsync(_vaultBaseUrl, secretName, version)
+            KeyVaultSecret secret = await _client
+                .GetSecretAsync(secretName, version)
                 .ConfigureAwait(false);
 
             return secret.Value;
         }
 
         /// <summary>
-        /// Returns <c>null</c> instead of throwing when the secret is absent. The legacy SDK
-        /// signals this through <see cref="KeyVaultErrorException"/> and an HTTP status code.
+        /// Returns <c>null</c> instead of throwing when the secret is absent.
         /// </summary>
         public async Task<string> TryGetSecretAsync(string secretName)
         {
             try
             {
-                SecretBundle secret = await _client.GetSecretAsync(_vaultBaseUrl, secretName)
+                KeyVaultSecret secret = await _client.GetSecretAsync(secretName)
                     .ConfigureAwait(false);
 
                 return secret.Value;
             }
-            catch (KeyVaultErrorException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.Status == 404)
             {
                 return null;
             }
@@ -65,11 +61,11 @@ namespace Contoso.Secrets
 
         public async Task<string> SetSecretAsync(string secretName, string value)
         {
-            SecretBundle stored = await _client
-                .SetSecretAsync(_vaultBaseUrl, secretName, value)
+            KeyVaultSecret stored = await _client
+                .SetSecretAsync(secretName, value)
                 .ConfigureAwait(false);
 
-            return stored.SecretIdentifier.Identifier;
+            return stored.Id.AbsoluteUri;
         }
 
         /// <summary>
@@ -87,27 +83,37 @@ namespace Contoso.Secrets
                 ["managed-by"] = "contoso-secrets",
             };
 
-            var attributes = new SecretAttributes
+            var secret = new KeyVaultSecret(secretName, value)
             {
-                Enabled = true,
-                Expires = expiresOnUtc,
-                NotBefore = DateTime.UtcNow,
+                Properties =
+                {
+                    Enabled = true,
+                    ExpiresOn = new DateTimeOffset(
+                        DateTime.SpecifyKind(expiresOnUtc, DateTimeKind.Utc)),
+                    NotBefore = DateTimeOffset.UtcNow,
+                    ContentType = "text/plain",
+                },
             };
 
-            SecretBundle stored = await _client
-                .SetSecretAsync(_vaultBaseUrl, secretName, value, tags, "text/plain", attributes)
+            foreach (KeyValuePair<string, string> tag in tags)
+            {
+                secret.Properties.Tags.Add(tag);
+            }
+
+            KeyVaultSecret stored = await _client
+                .SetSecretAsync(secret)
                 .ConfigureAwait(false);
 
-            return stored.SecretIdentifier.Identifier;
+            return stored.Id.AbsoluteUri;
         }
 
         public async Task DeleteSecretAsync(string secretName)
         {
             try
             {
-                await _client.DeleteSecretAsync(_vaultBaseUrl, secretName).ConfigureAwait(false);
+                await _client.StartDeleteSecretAsync(secretName).ConfigureAwait(false);
             }
-            catch (KeyVaultErrorException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.Status == 404)
             {
                 // Already gone; deleting is idempotent from the caller's point of view.
             }
@@ -122,25 +128,14 @@ namespace Contoso.Secrets
         {
             var names = new List<string>();
 
-            IPage<SecretItem> page = await _client
-                .GetSecretsAsync(_vaultBaseUrl, 25, cancellationToken)
-                .ConfigureAwait(false);
-
-            while (page != null)
+            await foreach (Page<SecretProperties> page in _client
+                .GetPropertiesOfSecretsAsync(cancellationToken)
+                .AsPages(pageSizeHint: 25))
             {
-                foreach (SecretItem item in page)
+                foreach (SecretProperties item in page.Values)
                 {
-                    names.Add(item.Identifier.Name);
+                    names.Add(item.Name);
                 }
-
-                if (string.IsNullOrEmpty(page.NextPageLink))
-                {
-                    break;
-                }
-
-                page = await _client
-                    .GetSecretsNextAsync(page.NextPageLink, cancellationToken)
-                    .ConfigureAwait(false);
             }
 
             return names;
@@ -152,10 +147,11 @@ namespace Contoso.Secrets
         /// </summary>
         public async Task CopySecretToAsync(string secretName, string destinationVaultUrl)
         {
-            SecretBundle source = await _client.GetSecretAsync(_vaultBaseUrl, secretName)
+            KeyVaultSecret source = await _client.GetSecretAsync(secretName)
                 .ConfigureAwait(false);
 
-            await _client.SetSecretAsync(destinationVaultUrl, secretName, source.Value)
+            SecretClient destination = _clients.GetSecretClient(destinationVaultUrl);
+            await destination.SetSecretAsync(secretName, source.Value)
                 .ConfigureAwait(false);
         }
     }

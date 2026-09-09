@@ -1,74 +1,64 @@
-# Key Vault sample — `migrating-azure-keyvault`
+# Key Vault sample — .NET 10 and Azure SDK Track 2
 
-A console app that reads configuration secrets, performs envelope encryption with a
-vault-held RSA key, and loads TLS certificates. It is deliberately stuck on the retired
-`Microsoft.Azure.KeyVault` SDK.
+A .NET 10 console app that reads and writes secrets, performs envelope encryption
+with a vault-held RSA key, and reads or creates certificates.
 
-- **TFM:** `net8.0`
-- **Deprecated packages:** `Microsoft.Azure.KeyVault`, `Microsoft.Azure.KeyVault.WebKey`, `Microsoft.Azure.Services.AppAuthentication`
-- **Baseline:** `dotnet build` succeeds with 0 warnings, 0 errors.
+## Packages
 
-## What each file exercises
+- `Azure.Security.KeyVault.Secrets`
+- `Azure.Security.KeyVault.Keys`
+- `Azure.Security.KeyVault.Certificates`
+- `Azure.Identity`
 
-| File | Legacy surface under test |
-|------|---------------------------|
-| `VaultClientFactory.cs` | `AzureServiceTokenProvider`, `KeyVaultClient.AuthenticationCallback`, hand-rolled OAuth token acquisition, `DelegatingHandler[]` constructor overload |
-| `CorrelationIdHandler.cs` | A custom `DelegatingHandler` passed straight into `KeyVaultClient` |
-| `SecretManager.cs` | `SecretBundle`, `GetSecretAsync`, versioned reads, `SetSecretAsync` with tags/content type/`SecretAttributes`, `DeleteSecretAsync`, `IPage<SecretItem>` + `GetSecretsNextAsync` paging, `KeyVaultErrorException` 404 handling, cross-vault copy |
-| `KeyManager.cs` | `KeyBundle`, `CreateKeyAsync`, `JsonWebKeyType` / `JsonWebKeyOperation` / `JsonWebKeyEncryptionAlgorithm` / `JsonWebKeySignatureAlgorithm`, `WrapKeyAsync`, `UnwrapKeyAsync`, `SignAsync`, `VerifyAsync` |
-| `CertificateManager.cs` | `CertificateBundle`, `GetCertificateAsync`, `IPage<CertificateItem>` paging, PFX-via-secret round trip, `CertificatePolicy` + `CreateCertificateAsync` |
+## Authentication modes
 
-## Expected migration outcome
+`VaultClientFactory` retains four authentication capabilities:
 
-### Packages
+- `CreateWithManagedIdentity(vaultUrl)` uses `DefaultAzureCredential` so the same
+  code supports local developer credentials and Azure managed identity.
+- `CreateWithUserAssignedIdentity(vaultUrl, clientId)` uses
+  `ManagedIdentityCredential` with the supplied client ID, preventing fallback to a
+  different managed identity. This mode also registers the correlation policy.
+- `CreateWithServicePrincipal(vaultUrl, tenantId, clientId, clientSecret)` uses
+  `ClientSecretCredential` and preserves the explicitly selected principal.
+- `GetAccessTokenAsync(resource)` requests the resource's `/.default` scope and
+  returns the bearer token text for callers that explicitly need it.
 
-- [ ] `Microsoft.Azure.KeyVault`, `Microsoft.Azure.KeyVault.WebKey`, and `Microsoft.Azure.Services.AppAuthentication` are all removed from `Contoso.Secrets.csproj`.
-- [ ] `Azure.Security.KeyVault.Secrets`, `Azure.Security.KeyVault.Keys`, `Azure.Security.KeyVault.Certificates`, and `Azure.Identity` are added. All three resource packages are genuinely needed here — dropping one is a miss, adding a fourth unused one is also a miss.
-- [ ] The `NU1902;NU1903` suppression is no longer needed and should be dropped.
+The factory creates one long-lived `SecretClient`, `KeyClient`, and
+`CertificateClient` for the source vault. Destination `SecretClient` instances used
+by cross-vault copies are cached by vault URI and share the same credential.
 
-### Authentication
+## Preserved operations
 
-- [ ] `AzureServiceTokenProvider` + `KeyVaultClient.AuthenticationCallback` becomes `DefaultAzureCredential`.
-- [ ] `CreateWithUserAssignedIdentity` becomes `ManagedIdentityCredential` (or `DefaultAzureCredential` with `ManagedIdentityClientId` set) — **not** a bare `DefaultAzureCredential`, which would silently lose the identity pinning.
-- [ ] `CreateWithServicePrincipal` becomes `ClientSecretCredential`, and the hand-rolled `HttpClient` token call plus `TokenPayloadReader` are deleted outright.
-- [ ] `GetAccessTokenAsync` becomes `credential.GetTokenAsync(new TokenRequestContext(scopes))`.
+- Latest and version-pinned secret reads, tagged secret writes, idempotent deletion,
+  metadata-only paged listing, and cross-vault copies.
+- RSA-2048 key creation with encrypt, decrypt, sign, verify, wrap, and unwrap
+  operations.
+- RSA-OAEP key wrapping and RS256 digest signing through cached
+  `CryptographyClient` instances bound to the exact key version.
+- Public-certificate reads, PFX retrieval through the certificate's same-name
+  secret, metadata-only certificate listing, and asynchronous self-signed
+  certificate creation.
+- Missing secret, idempotent secret deletion, missing key, and missing certificate
+  paths filter `RequestFailedException` on HTTP status 404.
+- `CorrelationIdHandler` is an Azure.Core synchronous pipeline policy registered at
+  `HttpPipelinePosition.PerCall`. The header is stamped once before retry processing,
+  so every retry for one logical operation carries the same correlation value.
 
-### Client shape
+## Build
 
-- [ ] One `SecretClient` / `KeyClient` / `CertificateClient` per vault URI, constructed once.
-- [ ] `_vaultBaseUrl` is no longer threaded through every call.
-- [ ] `CopySecretToAsync` creates a **second** `SecretClient` for the destination vault. Reusing the source client here is a correctness bug, because the vault URI is now fixed at construction.
-
-### Operations
-
-- [ ] `SecretBundle` → `KeyVaultSecret`; `KeyBundle` → `KeyVaultKey`; `CertificateBundle` → `KeyVaultCertificateWithPolicy`.
-- [ ] `IPage<T>` + `Get*NextAsync` loops collapse to `await foreach` over `AsyncPageable<SecretProperties>` / `AsyncPageable<CertificateProperties>`. A migration that keeps a manual `NextPageLink` loop has not really migrated.
-- [ ] `SetSecretAsync(url, name, value, tags, contentType, attributes)` becomes a `KeyVaultSecret` with `Properties.Tags`, `Properties.ContentType`, `Properties.ExpiresOn`, `Properties.NotBefore`, then `SetSecretAsync(secret)`.
-- [ ] `DeleteSecretAsync` returns a `DeleteSecretOperation` now — the caller either awaits completion or explicitly does not.
-- [ ] Wrap/unwrap and sign/verify move to `CryptographyClient` (`keyClient.GetCryptographyClient(name)` or `new CryptographyClient(keyId, credential)`). Leaving these on `KeyClient` will not compile, so watch for them being dropped instead of ported.
-- [ ] `JsonWebKeyType.Rsa` → `KeyType.Rsa`; `JsonWebKeyOperation.*` → `KeyOperation.*`; `JsonWebKeyEncryptionAlgorithm.RSAOAEP` → `KeyWrapAlgorithm.RsaOaep`; `JsonWebKeySignatureAlgorithm.RS256` → `SignatureAlgorithm.RS256`.
-- [ ] `CertificatePolicy` is rebuilt using the new `CertificatePolicy` type (`CertificatePolicy.Default` or the issuer/subject constructor), and `CreateCertificateAsync` returns a `CertificateOperation`.
-
-### Error handling
-
-- [ ] Every `catch (KeyVaultErrorException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)` becomes `catch (RequestFailedException ex) when (ex.Status == 404)`.
-- [ ] There are **four** of these (`TryGetSecretAsync`, `DeleteSecretAsync`, `KeyExistsAsync`, `GetExpiryAsync`). Missing any one is a partial migration.
-
-### Custom pipeline
-
-- [ ] `CorrelationIdHandler` is either reimplemented as an `HttpPipelinePolicy` registered through `SecretClientOptions.AddPolicy(...)`, or explicitly called out as dropped. Silently deleting it without a note is a miss — it changes observable request behavior.
-
-### Build
-
-- [ ] `dotnet build` succeeds.
-- [ ] No `Microsoft.Azure.KeyVault` or `Microsoft.Azure.Services.AppAuthentication` references survive anywhere: `git grep -n "Microsoft.Azure.KeyVault\|AppAuthentication\|KeyVaultClient\|SecretBundle\|KeyBundle\|CertificateBundle"` returns nothing.
+```powershell
+dotnet restore .\Contoso.Secrets.csproj
+dotnet build .\Contoso.Secrets.csproj
+```
 
 ## Running
 
 ```powershell
-dotnet build
-$env:CONTOSO_VAULT_URL = "https://contoso-dev.vault.azure.net/"   # optional
-dotnet run
+$env:CONTOSO_VAULT_URL = "https://contoso-dev.vault.azure.net/"
+dotnet run --project .\Contoso.Secrets.csproj
 ```
 
-Without `CONTOSO_VAULT_URL` the app prints a notice and exits without touching the network.
+Without `CONTOSO_VAULT_URL`, the app prints a notice and exits without contacting
+Azure. Live-service behavior requires a non-production test vault and appropriate
+data-plane role assignments; it is not exercised by the build.

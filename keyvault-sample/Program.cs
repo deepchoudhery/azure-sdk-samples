@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
 
 namespace Contoso.Secrets
 {
@@ -21,11 +20,11 @@ namespace Contoso.Secrets
                 return 0;
             }
 
-            KeyVaultClient client = VaultClientFactory.CreateWithManagedIdentity();
+            VaultClients clients = VaultClientFactory.CreateWithManagedIdentity(vaultUrl);
 
-            var secrets = new SecretManager(client, vaultUrl);
-            var keys = new KeyManager(client, vaultUrl);
-            var certificates = new CertificateManager(client, vaultUrl);
+            var secrets = new SecretManager(clients);
+            var keys = new KeyManager(clients.Keys);
+            var certificates = new CertificateManager(clients.Certificates, clients.Secrets);
 
             try
             {

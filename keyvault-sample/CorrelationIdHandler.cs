@@ -1,28 +1,23 @@
-using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Core.Pipeline;
 
 namespace Contoso.Secrets
 {
     /// <summary>
-    /// Stamps an outbound correlation id on every vault request. The legacy
-    /// <c>KeyVaultClient</c> takes <see cref="DelegatingHandler"/> instances directly in its
-    /// constructor.
+    /// Stamps one outbound correlation id on a logical vault operation. Registered in
+    /// the per-call pipeline so retries retain the same header value.
     /// </summary>
-    public class CorrelationIdHandler : DelegatingHandler
+    public class CorrelationIdHandler : HttpPipelineSynchronousPolicy
     {
         public const string HeaderName = "x-contoso-correlation-id";
 
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
+        public override void OnSendingRequest(HttpMessage message)
         {
-            if (!request.Headers.Contains(HeaderName))
+            if (!message.Request.Headers.Contains(HeaderName))
             {
-                request.Headers.Add(HeaderName, CorrelationScope.Current);
+                message.Request.Headers.Add(HeaderName, CorrelationScope.Current);
             }
-
-            return base.SendAsync(request, cancellationToken);
         }
     }
 
