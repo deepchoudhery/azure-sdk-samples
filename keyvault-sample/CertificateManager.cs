@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Rest.Azure;
+using Azure;
+using Azure.Security.KeyVault.Certificates;
+using Azure.Security.KeyVault.Secrets;
 
 namespace Contoso.Secrets
 {
@@ -13,35 +12,35 @@ namespace Contoso.Secrets
     /// </summary>
     public class CertificateManager
     {
-        private readonly KeyVaultClient _client;
-        private readonly string _vaultBaseUrl;
+        private readonly CertificateClient _client;
+        private readonly SecretClient _secretClient;
 
-        public CertificateManager(KeyVaultClient client, string vaultBaseUrl)
+        public CertificateManager(CertificateClient client, SecretClient secretClient)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _vaultBaseUrl = vaultBaseUrl ?? throw new ArgumentNullException(nameof(vaultBaseUrl));
+            _secretClient = secretClient ?? throw new ArgumentNullException(nameof(secretClient));
         }
 
         public async Task<byte[]> GetPublicCertificateAsync(string certificateName)
         {
-            CertificateBundle bundle = await _client
-                .GetCertificateAsync(_vaultBaseUrl, certificateName)
+            KeyVaultCertificateWithPolicy certificate = await _client
+                .GetCertificateAsync(certificateName)
                 .ConfigureAwait(false);
 
-            return bundle.Cer;
+            return certificate.Cer;
         }
 
         public async Task<DateTime?> GetExpiryAsync(string certificateName)
         {
             try
             {
-                CertificateBundle bundle = await _client
-                    .GetCertificateAsync(_vaultBaseUrl, certificateName)
+                KeyVaultCertificateWithPolicy certificate = await _client
+                    .GetCertificateAsync(certificateName)
                     .ConfigureAwait(false);
 
-                return bundle.Attributes?.Expires;
+                return certificate.Properties.ExpiresOn?.UtcDateTime;
             }
-            catch (KeyVaultErrorException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.Status == 404)
             {
                 return null;
             }
@@ -53,8 +52,8 @@ namespace Contoso.Secrets
         /// </summary>
         public async Task<byte[]> GetCertificateWithPrivateKeyAsync(string certificateName)
         {
-            SecretBundle secret = await _client
-                .GetSecretAsync(_vaultBaseUrl, certificateName)
+            KeyVaultSecret secret = await _secretClient
+                .GetSecretAsync(certificateName)
                 .ConfigureAwait(false);
 
             return Convert.FromBase64String(secret.Value);
@@ -64,24 +63,10 @@ namespace Contoso.Secrets
         {
             var names = new List<string>();
 
-            IPage<CertificateItem> page = await _client
-                .GetCertificatesAsync(_vaultBaseUrl)
-                .ConfigureAwait(false);
-
-            while (page != null)
+            await foreach (CertificateProperties certificate in
+                _client.GetPropertiesOfCertificatesAsync())
             {
-                foreach (CertificateItem item in page)
-                {
-                    names.Add(item.Identifier.Name);
-                }
-
-                if (string.IsNullOrEmpty(page.NextPageLink))
-                {
-                    break;
-                }
-
-                page = await _client.GetCertificatesNextAsync(page.NextPageLink)
-                    .ConfigureAwait(false);
+                names.Add(certificate.Name);
             }
 
             return names;
@@ -92,26 +77,20 @@ namespace Contoso.Secrets
         /// </summary>
         public async Task<string> StartCreateSelfSignedAsync(string certificateName, string subject)
         {
-            var policy = new CertificatePolicy
+            var policy = new CertificatePolicy(
+                WellKnownIssuerNames.Self,
+                subject)
             {
-                IssuerParameters = new IssuerParameters { Name = "Self" },
-                KeyProperties = new KeyProperties
-                {
-                    Exportable = true,
-                    KeyType = "RSA",
-                    KeySize = 2048,
-                    ReuseKey = false,
-                },
-                SecretProperties = new SecretProperties { ContentType = "application/x-pkcs12" },
-                X509CertificateProperties = new X509CertificateProperties
-                {
-                    Subject = subject,
-                    ValidityInMonths = 12,
-                },
+                Exportable = true,
+                KeyType = CertificateKeyType.Rsa,
+                KeySize = 2048,
+                ReuseKey = false,
+                ContentType = CertificateContentType.Pkcs12,
+                ValidityInMonths = 12,
             };
 
             CertificateOperation operation = await _client
-                .CreateCertificateAsync(_vaultBaseUrl, certificateName, policy)
+                .StartCreateCertificateAsync(certificateName, policy)
                 .ConfigureAwait(false);
 
             return operation.Id;

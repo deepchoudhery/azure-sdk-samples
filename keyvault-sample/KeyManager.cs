@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Azure.KeyVault.WebKey;
+using Azure;
+using Azure.Security.KeyVault.Keys;
+using Azure.Security.KeyVault.Keys.Cryptography;
 
 namespace Contoso.Secrets
 {
@@ -13,57 +13,48 @@ namespace Contoso.Secrets
     /// </summary>
     public class KeyManager
     {
-        private readonly KeyVaultClient _client;
-        private readonly string _vaultBaseUrl;
+        private readonly KeyClient _client;
+        private readonly ConcurrentDictionary<string, CryptographyClient> _cryptographyClients =
+            new ConcurrentDictionary<string, CryptographyClient>(StringComparer.Ordinal);
 
-        public KeyManager(KeyVaultClient client, string vaultBaseUrl)
+        public KeyManager(KeyClient client)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _vaultBaseUrl = vaultBaseUrl ?? throw new ArgumentNullException(nameof(vaultBaseUrl));
         }
 
         public async Task<string> CreateRsaKeyAsync(string keyName)
         {
-            var attributes = new KeyAttributes
+            var options = new CreateRsaKeyOptions(keyName)
             {
                 Enabled = true,
-                NotBefore = DateTime.UtcNow,
+                NotBefore = DateTimeOffset.UtcNow,
+                KeySize = 2048,
             };
 
-            var operations = new List<string>
-            {
-                JsonWebKeyOperation.Encrypt,
-                JsonWebKeyOperation.Decrypt,
-                JsonWebKeyOperation.Sign,
-                JsonWebKeyOperation.Verify,
-                JsonWebKeyOperation.Wrap,
-                JsonWebKeyOperation.Unwrap,
-            };
+            options.KeyOperations.Add(KeyOperation.Encrypt);
+            options.KeyOperations.Add(KeyOperation.Decrypt);
+            options.KeyOperations.Add(KeyOperation.Sign);
+            options.KeyOperations.Add(KeyOperation.Verify);
+            options.KeyOperations.Add(KeyOperation.WrapKey);
+            options.KeyOperations.Add(KeyOperation.UnwrapKey);
 
-            KeyBundle created = await _client.CreateKeyAsync(
-                _vaultBaseUrl,
-                keyName,
-                JsonWebKeyType.Rsa,
-                2048,
-                operations,
-                attributes).ConfigureAwait(false);
-
-            return created.KeyIdentifier.Identifier;
+            KeyVaultKey created = await _client.CreateRsaKeyAsync(options).ConfigureAwait(false);
+            return created.Id.AbsoluteUri;
         }
 
-        public async Task<KeyBundle> GetKeyAsync(string keyName)
+        public async Task<KeyVaultKey> GetKeyAsync(string keyName)
         {
-            return await _client.GetKeyAsync(_vaultBaseUrl, keyName).ConfigureAwait(false);
+            return await _client.GetKeyAsync(keyName).ConfigureAwait(false);
         }
 
         public async Task<bool> KeyExistsAsync(string keyName)
         {
             try
             {
-                await _client.GetKeyAsync(_vaultBaseUrl, keyName).ConfigureAwait(false);
+                await _client.GetKeyAsync(keyName).ConfigureAwait(false);
                 return true;
             }
-            catch (KeyVaultErrorException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.Status == 404)
             {
                 return false;
             }
@@ -74,64 +65,59 @@ namespace Contoso.Secrets
         /// </summary>
         public async Task<byte[]> WrapAsync(string keyName, byte[] dataEncryptionKey)
         {
-            KeyBundle key = await _client.GetKeyAsync(_vaultBaseUrl, keyName).ConfigureAwait(false);
+            KeyVaultKey key = await _client.GetKeyAsync(keyName).ConfigureAwait(false);
+            CryptographyClient cryptographyClient = GetCryptographyClient(key);
+            WrapResult result = await cryptographyClient
+                .WrapKeyAsync(KeyWrapAlgorithm.RsaOaep, dataEncryptionKey)
+                .ConfigureAwait(false);
 
-            KeyOperationResult result = await _client.WrapKeyAsync(
-                _vaultBaseUrl,
-                keyName,
-                key.KeyIdentifier.Version,
-                JsonWebKeyEncryptionAlgorithm.RSAOAEP,
-                dataEncryptionKey).ConfigureAwait(false);
-
-            return result.Result;
+            return result.EncryptedKey;
         }
 
         public async Task<byte[]> UnwrapAsync(string keyName, byte[] wrappedKey)
         {
-            KeyBundle key = await _client.GetKeyAsync(_vaultBaseUrl, keyName).ConfigureAwait(false);
+            KeyVaultKey key = await _client.GetKeyAsync(keyName).ConfigureAwait(false);
+            CryptographyClient cryptographyClient = GetCryptographyClient(key);
+            UnwrapResult result = await cryptographyClient
+                .UnwrapKeyAsync(KeyWrapAlgorithm.RsaOaep, wrappedKey)
+                .ConfigureAwait(false);
 
-            KeyOperationResult result = await _client.UnwrapKeyAsync(
-                _vaultBaseUrl,
-                keyName,
-                key.KeyIdentifier.Version,
-                JsonWebKeyEncryptionAlgorithm.RSAOAEP,
-                wrappedKey).ConfigureAwait(false);
-
-            return result.Result;
+            return result.Key;
         }
 
         public async Task<byte[]> SignDigestAsync(string keyName, byte[] digest)
         {
-            KeyBundle key = await _client.GetKeyAsync(_vaultBaseUrl, keyName).ConfigureAwait(false);
+            KeyVaultKey key = await _client.GetKeyAsync(keyName).ConfigureAwait(false);
+            CryptographyClient cryptographyClient = GetCryptographyClient(key);
+            SignResult result = await cryptographyClient
+                .SignAsync(SignatureAlgorithm.RS256, digest)
+                .ConfigureAwait(false);
 
-            KeyOperationResult result = await _client.SignAsync(
-                _vaultBaseUrl,
-                keyName,
-                key.KeyIdentifier.Version,
-                JsonWebKeySignatureAlgorithm.RS256,
-                digest).ConfigureAwait(false);
-
-            return result.Result;
+            return result.Signature;
         }
 
         public async Task<bool> VerifyDigestAsync(string keyName, byte[] digest, byte[] signature)
         {
-            KeyBundle key = await _client.GetKeyAsync(_vaultBaseUrl, keyName).ConfigureAwait(false);
+            KeyVaultKey key = await _client.GetKeyAsync(keyName).ConfigureAwait(false);
+            CryptographyClient cryptographyClient = GetCryptographyClient(key);
+            VerifyResult result = await cryptographyClient
+                .VerifyAsync(SignatureAlgorithm.RS256, digest, signature)
+                .ConfigureAwait(false);
 
-            KeyVerifyResult result = await _client.VerifyAsync(
-                _vaultBaseUrl,
-                keyName,
-                key.KeyIdentifier.Version,
-                JsonWebKeySignatureAlgorithm.RS256,
-                digest,
-                signature).ConfigureAwait(false);
-
-            return result.Value ?? false;
+            return result.IsValid;
         }
 
         public async Task DeleteKeyAsync(string keyName)
         {
-            await _client.DeleteKeyAsync(_vaultBaseUrl, keyName).ConfigureAwait(false);
+            await _client.StartDeleteKeyAsync(keyName).ConfigureAwait(false);
+        }
+
+        private CryptographyClient GetCryptographyClient(KeyVaultKey key)
+        {
+            string cacheKey = key.Id.AbsoluteUri;
+            return _cryptographyClients.GetOrAdd(
+                cacheKey,
+                _ => _client.GetCryptographyClient(key.Name, key.Properties.Version));
         }
     }
 }

@@ -1,93 +1,170 @@
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Security.KeyVault.Certificates;
+using Azure.Security.KeyVault.Keys;
+using Azure.Security.KeyVault.Secrets;
 
 namespace Contoso.Secrets
 {
     /// <summary>
-    /// Builds <see cref="KeyVaultClient"/> instances. The legacy SDK has no unified
-    /// credential type, so every authentication mode needs its own token callback.
+    /// Builds and caches the vault-bound Track 2 clients used by the sample.
     /// </summary>
     public static class VaultClientFactory
     {
-        /// <summary>
-        /// Managed identity with local-developer fallback. This is the pattern the
-        /// Microsoft.Azure.Services.AppAuthentication docs recommended.
-        /// </summary>
-        public static KeyVaultClient CreateWithManagedIdentity()
-        {
-            var azureServiceTokenProvider = new AzureServiceTokenProvider();
+        private static readonly DefaultAzureCredential DefaultCredential =
+            new DefaultAzureCredential();
 
-            return new KeyVaultClient(
-                new KeyVaultClient.AuthenticationCallback(
-                    azureServiceTokenProvider.KeyVaultTokenCallback));
+        /// <summary>
+        /// Managed identity with local-developer fallback.
+        /// </summary>
+        public static VaultClients CreateWithManagedIdentity(string vaultUrl)
+        {
+            return new VaultClients(vaultUrl, DefaultCredential, addCorrelationPolicy: false);
         }
 
         /// <summary>
-        /// Same as above but pinned to a specific user-assigned managed identity via the
-        /// AppAuthentication connection string format.
+        /// Uses a specific user-assigned managed identity and retains correlation headers.
         /// </summary>
-        public static KeyVaultClient CreateWithUserAssignedIdentity(string clientId)
+        public static VaultClients CreateWithUserAssignedIdentity(string vaultUrl, string clientId)
         {
             if (string.IsNullOrWhiteSpace(clientId))
             {
                 throw new ArgumentException("A client id is required.", nameof(clientId));
             }
 
-            var tokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={clientId}");
-
-            return new KeyVaultClient(
-                new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback),
-                new CorrelationIdHandler());
+            return new VaultClients(
+                vaultUrl,
+                new ManagedIdentityCredential(
+                    ManagedIdentityId.FromUserAssignedClientId(clientId)),
+                addCorrelationPolicy: true);
         }
 
         /// <summary>
-        /// Explicit service principal. Note the hand-rolled token acquisition: the legacy
-        /// SDK pushes all of this onto the caller.
+        /// Explicit service principal authentication.
         /// </summary>
-        public static KeyVaultClient CreateWithServicePrincipal(
+        public static VaultClients CreateWithServicePrincipal(
+            string vaultUrl,
             string tenantId,
             string clientId,
             string clientSecret)
         {
-            KeyVaultClient.AuthenticationCallback callback = async (authority, resource, scope) =>
-            {
-                using (var http = new HttpClient())
-                {
-                    var form = new Dictionary<string, string>
-                    {
-                        ["grant_type"] = "client_credentials",
-                        ["client_id"] = clientId,
-                        ["client_secret"] = clientSecret,
-                        ["resource"] = resource,
-                    };
-
-                    var tokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/token";
-                    var response = await http
-                        .PostAsync(tokenEndpoint, new FormUrlEncodedContent(form))
-                        .ConfigureAwait(false);
-
-                    response.EnsureSuccessStatusCode();
-
-                    var payload = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    return TokenPayloadReader.ReadAccessToken(payload);
-                }
-            };
-
-            return new KeyVaultClient(callback);
+            return new VaultClients(
+                vaultUrl,
+                new ClientSecretCredential(tenantId, clientId, clientSecret),
+                addCorrelationPolicy: false);
         }
 
         /// <summary>
-        /// Directly requests a bearer token for an arbitrary resource, bypassing the vault
-        /// client entirely.
+        /// Directly requests a bearer token for an arbitrary resource.
         /// </summary>
-        public static Task<string> GetAccessTokenAsync(string resource)
+        public static async Task<string> GetAccessTokenAsync(string resource)
         {
-            var provider = new AzureServiceTokenProvider();
-            return provider.GetAccessTokenAsync(resource);
+            if (string.IsNullOrWhiteSpace(resource))
+            {
+                throw new ArgumentException("A resource is required.", nameof(resource));
+            }
+
+            var context = new TokenRequestContext(
+                new[] { resource.TrimEnd('/') + "/.default" });
+            AccessToken token = await DefaultCredential
+                .GetTokenAsync(context, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            return token.Token;
+        }
+    }
+
+    /// <summary>
+    /// Long-lived Key Vault clients that share one credential and Azure.Core transport pool.
+    /// </summary>
+    public sealed class VaultClients
+    {
+        private readonly TokenCredential _credential;
+        private readonly bool _addCorrelationPolicy;
+        private readonly ConcurrentDictionary<string, SecretClient> _secretClients;
+
+        internal VaultClients(
+            string vaultUrl,
+            TokenCredential credential,
+            bool addCorrelationPolicy)
+        {
+            if (string.IsNullOrWhiteSpace(vaultUrl))
+            {
+                throw new ArgumentException("A vault URL is required.", nameof(vaultUrl));
+            }
+
+            _credential = credential ?? throw new ArgumentNullException(nameof(credential));
+            _addCorrelationPolicy = addCorrelationPolicy;
+            _secretClients = new ConcurrentDictionary<string, SecretClient>(
+                StringComparer.OrdinalIgnoreCase);
+
+            Uri vaultUri = new Uri(vaultUrl, UriKind.Absolute);
+            Secrets = CreateSecretClient(vaultUri);
+            _secretClients.TryAdd(vaultUri.AbsoluteUri, Secrets);
+            Keys = new KeyClient(vaultUri, _credential, CreateKeyOptions());
+            Certificates = new CertificateClient(
+                vaultUri,
+                _credential,
+                CreateCertificateOptions());
+        }
+
+        public SecretClient Secrets { get; }
+
+        public KeyClient Keys { get; }
+
+        public CertificateClient Certificates { get; }
+
+        internal SecretClient GetSecretClient(string vaultUrl)
+        {
+            if (string.IsNullOrWhiteSpace(vaultUrl))
+            {
+                throw new ArgumentException("A destination vault URL is required.", nameof(vaultUrl));
+            }
+
+            Uri vaultUri = new Uri(vaultUrl, UriKind.Absolute);
+            return _secretClients.GetOrAdd(
+                vaultUri.AbsoluteUri,
+                _ => CreateSecretClient(vaultUri));
+        }
+
+        private SecretClient CreateSecretClient(Uri vaultUri)
+        {
+            return new SecretClient(vaultUri, _credential, CreateSecretOptions());
+        }
+
+        private SecretClientOptions CreateSecretOptions()
+        {
+            var options = new SecretClientOptions();
+            AddCorrelationPolicy(options);
+            return options;
+        }
+
+        private KeyClientOptions CreateKeyOptions()
+        {
+            var options = new KeyClientOptions();
+            AddCorrelationPolicy(options);
+            return options;
+        }
+
+        private CertificateClientOptions CreateCertificateOptions()
+        {
+            var options = new CertificateClientOptions();
+            AddCorrelationPolicy(options);
+            return options;
+        }
+
+        private void AddCorrelationPolicy(ClientOptions options)
+        {
+            if (_addCorrelationPolicy)
+            {
+                options.AddPolicy(
+                    new CorrelationIdHandler(),
+                    HttpPipelinePosition.PerCall);
+            }
         }
     }
 }

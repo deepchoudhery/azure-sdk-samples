@@ -1,0 +1,33 @@
+# 01-upgrade-keyvault-sample: Upgrade the Contoso Key Vault sample to .NET 10 and the current Azure SDK
+
+Verify the .NET 10 SDK and any applicable `global.json` constraints, then upgrade `keyvault-sample\Contoso.Secrets.csproj` from `net8.0` to `net10.0`. In the same atomic task, replace the retired `Microsoft.Azure.KeyVault`, `Microsoft.Azure.KeyVault.WebKey`, and `Microsoft.Azure.Services.AppAuthentication` packages with the directly required `Azure.Security.KeyVault.Secrets`, `Azure.Security.KeyVault.Keys`, `Azure.Security.KeyVault.Certificates`, and `Azure.Identity` packages, removing obsolete vulnerability suppressions when the legacy dependencies are gone.
+
+Preserve the sample's authentication, secret, key, certificate, paging, error-handling, cross-vault copy, cryptography, and correlation-ID behavior while moving the directly relevant code to current Azure SDK client and credential patterns. Research should begin with `VaultClientFactory.cs`, `CorrelationIdHandler.cs`, `SecretManager.cs`, `KeyManager.cs`, `CertificateManager.cs`, `TokenPayloadReader.cs`, `Program.cs`, and `README.md`; retain user-assigned identity pinning, use a destination-vault client for secret copies, preserve all four not-found paths, and account for the assessed `HttpContent.ReadAsStringAsync` behavioral change. Do not deploy or delete Azure infrastructure, modify sibling projects, generate new test coverage, or create a pull request.
+
+After the atomic code and package migration, restore and build the scoped project and run any existing tests applicable to it. Fix all compilation errors and warnings introduced or touched by the upgrade, and verify that no legacy Key Vault SDK or AppAuthentication references remain.
+
+**Done when**: `Contoso.Secrets.csproj` targets `net10.0`; only the required modern Azure Key Vault and identity packages remain; the directly relevant source and documentation preserve the documented sample behavior; scoped restore/build and existing tests pass; searches find no surviving `Microsoft.Azure.KeyVault`, `Microsoft.Azure.Services.AppAuthentication`, `KeyVaultClient`, `SecretBundle`, `KeyBundle`, or `CertificateBundle` usage; and no infrastructure or sibling-project changes were made.
+
+## Confirmed research (before source edits)
+
+- **Scope and build mechanics:** `Contoso.Secrets.csproj` is an SDK-style, single-target project whose `TargetFramework` and all package versions are defined directly in the project file (no Central Package Management or imported package definitions). The correct scoped validation command is `dotnet build keyvault-sample\Contoso.Secrets.csproj`; no solution file, `global.json`, test project, or `STUB` marker exists in the repository.
+- **SDK baseline:** installed SDKs include stable .NET 10 (`10.0.203` and `10.0.303`); the pre-change `net8.0` restore/build succeeds with 0 warnings and 0 errors.
+- **Catalog classification:** the Azure SDK release catalog marks `Microsoft.Azure.KeyVault`, `Microsoft.Azure.KeyVault.WebKey`, and `Microsoft.Azure.Services.AppAuthentication` deprecated with EOL `2023-03-31`. Their supported replacements are the split Key Vault data-plane packages and `Azure.Identity`; no management-plane package or guidance applies.
+- **Supported stable versions for `net10.0`:** independent verification against the configured `azure-default` feed and NuGet.org corrected the preliminary version/package pairing: `Azure.Security.KeyVault.Secrets` 4.11.1, `Azure.Security.KeyVault.Keys` 4.10.1, `Azure.Security.KeyVault.Certificates` 4.9.1, and `Azure.Identity` 1.21.0. The preliminary Keys 4.11.1 and Certificates 4.10.1 candidates do not exist as stable packages, while Secrets 4.9.1 is supported but not current.
+- **Track 2 API contract:** replace the vault-agnostic `KeyVaultClient` with long-lived, vault-bound `SecretClient`, `KeyClient`, and `CertificateClient` instances; use `CryptographyClient` for wrap/unwrap/sign/verify; unwrap `Response<T>` values; replace manual `IPage<T>` continuation loops with `AsyncPageable<T>` enumeration; and replace each legacy 404 catch with a filtered `RequestFailedException` catch.
+- **Authentication contract:** preserve the environment-based fallback with `DefaultAzureCredential`, preserve the explicit user-assigned managed-identity client ID with `ManagedIdentityCredential`, preserve the explicit tenant/client/secret principal with `ClientSecretCredential`, and translate raw token resource values to `resource.TrimEnd('/') + "/.default"`. The hand-rolled OAuth HTTP request and `TokenPayloadReader` become unreachable and are removed; therefore the .NET `HttpContent.ReadAsStringAsync` behavioral change is not applicable to remaining production code.
+- **Behavior-sensitive requirements:** preserve source/destination vault affinity for copies by constructing/caching a destination-bound `SecretClient`; preserve RSA-2048 key creation, the six key operations, RSA-OAEP wrapping, RS256 signing, certificate issuer/subject/exportability/content type/key reuse/12-month validity, metadata-only paging, and all four not-found paths. Reimplement correlation stamping as an `HttpPipelinePolicy` registered in each client options object at `HttpPipelinePosition.PerCall`, ahead of retry processing, so one logical operation keeps one header value across retry attempts.
+- **Public wrapper surface baseline:** `VaultClientFactory` exposes `CreateWithManagedIdentity`, `CreateWithUserAssignedIdentity`, `CreateWithServicePrincipal`, and `GetAccessTokenAsync`; `SecretManager` exposes its constructor plus eight operations; `KeyManager` exposes its constructor plus eight operations; `CertificateManager` exposes its constructor plus five operations; `CorrelationIdHandler` and `CorrelationScope.Current` are public. The migration must retain these named capabilities and record any signature/type changes in the behavior audit.
+
+## Execution result
+
+- The project now targets `net10.0` and references only the verified stable Track 2 packages.
+- Authentication modes, identity pinning, client lifetime, destination-vault affinity, paging,
+  filtered 404 handling, cryptographic parameters, certificate policy, and correlation-policy
+  placement were migrated as specified.
+- Stable .NET SDK 10.0.303 restore/rebuild with warnings treated as errors passed and produced
+  `bin\Release\net10.0\Contoso.Secrets.dll`.
+- The no-vault execution path exited successfully without contacting Azure. No affected test
+  project exists. Legacy source/docs and transitive-package searches returned zero matches.
+- The required four-shape service audit, public-member comparison, removed-helper note, commands,
+  and live-service **Unchecked** findings are retained in `progress-details.md`.
